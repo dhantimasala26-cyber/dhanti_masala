@@ -1,0 +1,238 @@
+.checkoutSection {
+  background-color: var(--color-bg-light);
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.card {
+  background-color: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  padding: 2.5rem;
+}
+
+.cardTitle {
+  font-size: 1.4rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.75rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.paymentGroup {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.5rem;
+}
+
+.paymentOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  margin-bottom: 1rem;
+}
+
+.paymentOption:hover {
+  border-color: var(--color-primary);
+}
+
+.activeOption {
+  border-color: var(--color-primary);
+  background-color: rgba(194, 89, 63, 0.03);
+}
+
+.optionInput {
+  margin-top: 0.25rem;
+  accent-color: var(--color-primary);
+}
+
+.optionInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.optionName {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.optionDesc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* Right Column Summary */
+.summaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.itemName {
+  font-weight: 600;
+  max-width: 220px;
+}
+
+.itemMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.summaryRow.totalRow {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-text-dark);
+}
+
+/* Razorpay Modal */
+.razorpayModal {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.razorpayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+}
+
+.razorpayBrand {
+  font-weight: 800;
+  color: #1768E4; /* Razorpay Blue */
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.razorpayAmount {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.razorpayBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardFields {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  background-color: var(--color-bg-light);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardRow {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Success View */
+.successContainer {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.successIcon {
+  color: var(--color-success);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: rgba(46, 90, 68, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orderId {
+  background-color: var(--color-bg-light);
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-primary);
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .fullWidth {
+    grid-column: span 1;
+  }
+  .card {
+    padding: 1.5rem;
+  }
+}

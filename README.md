@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dhanti Masala eCommerce
+
+An elegant, modern Next.js eCommerce application powered by a Python FastAPI backend and Supabase database.
+
+## Architecture
+
+- **Frontend (Next.js)**: Runs on port `3000`. Serves the customer-facing store and admin management dashboards.
+- **Backend (FastAPI)**: Runs on port `8000`. Handles API services (Authentication, Categories, Products, Checkout, CMS, Coupons, Customers, and Orders).
+- **Database (Supabase)**: Holds structured data tables under Row-Level Security (RLS).
+- **Asset Storage (Local)**: Uploaded images are stored securely in `public/uploads` and served dynamically.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Database Setup & RLS Policies
+1. Go to your **Supabase Dashboard** -> **SQL Editor**.
+2. Run the full database schema setup located in [schema.sql](file:///d:/thardeye_projects/Dhanti%20Masala/schema.sql).
+   - This sets up the tables (`categories`, `products`, `orders`, `customers`, `coupons`, `cms_content`).
+   - It automatically enables Row-Level Security (RLS) and sets public `SELECT` policies to allow storefront reading.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 2. Environment Configuration
+
+#### Frontend (`.env.local`)
+Create a `.env.local` file in the root directory:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### Backend (`backend/.env`)
+Create a `.env` file in the `backend/` directory:
+```env
+SUPABASE_URL=https://your-supabase-project.supabase.co
+# CRITICAL: You MUST use the "service_role" secret key here so the backend
+# can bypass RLS policies and successfully insert/update records.
+SUPABASE_KEY=your-secret-service-role-key
+ADMIN_EMAIL=admin@dhantimasala.com
+ADMIN_PASSWORD=admin123
+UPLOAD_DIR=../public/uploads
+ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Running Locally
+Simply double-click or run the concurrent launcher script in your terminal from the root folder:
+```bash
+start.bat
+```
+This launcher will:
+1. Ensure the `public/uploads/` directory exists.
+2. Spin up the FastAPI backend on `http://127.0.0.1:8000` via `python -m uvicorn`.
+3. Spin up the Next.js dev server on `http://localhost:3000`.
+4. Keep logs fully visible in both windows for easy debugging.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Row-Level Security (RLS) Troubleshooting
 
-To learn more about Next.js, take a look at the following resources:
+If you see the error:
+`new row violates row-level security policy for table "categories"` (or any other table name)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+It means:
+1. **Wrong Key in Backend**: Your `backend/.env` is configured with the `anon` (publishable) key instead of the `service_role` key. Replace `SUPABASE_KEY` with the `service_role` key from your Supabase Dashboard -> Settings -> API -> `service_role` (secret).
+2. **Missing SELECT Policies**: If your storefront cannot load products or categories, execute the RLS policies section at the bottom of [schema.sql](file:///d:/thardeye_projects/Dhanti%20Masala/schema.sql) in your Supabase SQL Editor.

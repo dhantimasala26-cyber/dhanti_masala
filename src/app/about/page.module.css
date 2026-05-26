@@ -1,0 +1,203 @@
+.header {
+  position: relative;
+  background-color: var(--color-text-dark);
+  color: var(--color-bg-light);
+  padding: 6rem 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.headerBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.15;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+.headerContent {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-secondary);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.title {
+  font-size: 3rem;
+  color: var(--color-bg-light);
+  margin-bottom: 1rem;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.storySection {
+  background-color: var(--color-bg-white);
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.imageWrapper {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  height: 480px;
+}
+
+.storyImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.highlight {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  color: var(--color-primary);
+  line-height: 1.4;
+  border-left: 4px solid var(--color-secondary);
+  padding-left: 1.5rem;
+}
+
+.text {
+  font-size: 1rem;
+  color: var(--color-text-dark);
+  line-height: 1.7;
+}
+
+.valuesSection {
+  background-color: var(--color-bg-light);
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+}
+
+.valueCard {
+  background-color: var(--color-bg-white);
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.valueCard:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.valueIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: rgba(216, 141, 67, 0.1);
+  color: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.valueTitle {
+  font-size: 1.3rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.valueText {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.ctaSection {
+  background-color: var(--color-text-dark);
+  color: var(--color-bg-light);
+  text-align: center;
+  padding: 5rem 0;
+}
+
+.ctaTitle {
+  font-size: 2.5rem;
+  color: var(--color-bg-light);
+  margin-bottom: 1.25rem;
+}
+
+.ctaText {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .storyGrid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .imageWrapper {
+    height: 300px;
+  }
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+  .title {
+    font-size: 2.2rem;
+  }
+}
+
+.expertSection {
+  background-color: var(--color-bg-light);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.expertGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .expertGrid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+

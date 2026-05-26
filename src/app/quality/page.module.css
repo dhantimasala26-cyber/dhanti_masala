@@ -1,0 +1,190 @@
+.header {
+  position: relative;
+  background-color: var(--color-text-dark);
+  color: var(--color-bg-light);
+  padding: 6rem 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.headerBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.15;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+.headerContent {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-secondary);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.title {
+  font-size: 3rem;
+  color: var(--color-bg-light);
+  margin-bottom: 1rem;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.processSection {
+  background-color: var(--color-bg-white);
+}
+
+.processTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.processItem {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.processItem:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.numberBox {
+  font-family: var(--font-title);
+  font-size: 4rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  opacity: 0.3;
+  line-height: 1;
+  min-width: 100px;
+  text-align: right;
+}
+
+.processItem:nth-child(even) .numberBox {
+  text-align: left;
+}
+
+.itemContent {
+  flex: 1;
+}
+
+.itemTitle {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-dark);
+}
+
+.itemText {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.purityPledge {
+  background-color: var(--color-bg-light);
+}
+
+.pledgeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.pledgeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.badgeGroup {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.badgeCard {
+  background-color: var(--color-bg-white);
+  padding: 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.badgeIcon {
+  color: var(--color-success);
+}
+
+.badgeTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.badgeText {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.pledgeImageWrapper {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 400px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+}
+
+.pledgeImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .processItem, .processItem:nth-child(even) {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .numberBox, .processItem:nth-child(even) .numberBox {
+    text-align: left;
+    min-width: auto;
+    font-size: 3rem;
+  }
+  .pledgeGrid {
+    grid-template-columns: 1fr;
+  }
+  .pledgeImageWrapper {
+    height: 280px;
+    order: 2;
+  }
+  .badgeGroup {
+    grid-template-columns: 1fr;
+  }
+}

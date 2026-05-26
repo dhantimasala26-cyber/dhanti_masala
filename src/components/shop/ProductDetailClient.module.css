@@ -1,0 +1,248 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.gallery {
+  position: sticky;
+  top: 100px;
+}
+
+.imgWrapper {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 480px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.productImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.category {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+  letter-spacing: 0.1em;
+}
+
+.title {
+  font-size: 2.6rem;
+  line-height: 1.2;
+}
+
+.shortDesc {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.priceGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.price {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.originalPrice {
+  font-size: 1.3rem;
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.optionLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.variants {
+  display: flex;
+  gap: 1rem;
+}
+
+.variantBtn {
+  background-color: var(--color-bg-white);
+  border: 1.5px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.variantBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.activeVariant {
+  background-color: var(--color-primary);
+  color: var(--color-bg-light);
+  border-color: var(--color-primary);
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.qtyPicker {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50px;
+  background-color: var(--color-bg-white);
+  overflow: hidden;
+  width: 140px;
+  height: 48px;
+}
+
+.qtyBtn {
+  border: none;
+  background: none;
+  width: 44px;
+  height: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--color-text-dark);
+  transition: var(--transition-smooth);
+}
+
+.qtyBtn:hover {
+  background-color: var(--color-bg-light);
+  color: var(--color-primary);
+}
+
+.qtyInput {
+  flex: 1;
+  text-align: center;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  width: 40px;
+}
+
+.stock {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.inStock {
+  color: var(--color-success);
+}
+
+.outOfStock {
+  color: var(--color-error);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.descSection {
+  margin-top: 2rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 2rem;
+}
+
+.descTitle {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.descText {
+  color: var(--color-text-dark);
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.specsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.specsTable tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.specsTable td {
+  padding: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.specsTable td:first-child {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  width: 140px;
+}
+
+.successMsg {
+  background-color: rgba(46, 90, 68, 0.1);
+  color: var(--color-success);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@media (max-width: 992px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .gallery {
+    position: static;
+  }
+  .imgWrapper {
+    height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .detailContainer {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}

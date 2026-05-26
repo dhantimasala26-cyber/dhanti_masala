@@ -1,0 +1,18 @@
+# Apache configuration file for cPanel deployment of Dhanti Masala
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1. Clean URL Routing for Next.js Statically Exported HTML Pages
+  # If a requested URL has no extension and matches a static HTML file, serve that HTML file
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+
+  # 2. Redirect/Proxy /api Requests to Python FastAPI Backend Subdomain
+  # If you deploy the Python app on a subdomain like api.dhantimasala.com,
+  # uncomment the rules below. Note: mod_proxy must be enabled in Apache.
+  #
+  # RewriteCond %{REQUEST_URI} ^/api/
+  # RewriteRule ^api/(.*)$ https://api.dhantimasala.com/api/$1 [P,L]
+</IfModule>
