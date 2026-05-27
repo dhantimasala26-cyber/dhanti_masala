@@ -72,11 +72,9 @@ export default function AdminLoginPage() {
       }}>
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <svg width="48" height="48" viewBox="0 0 32 32" fill="none" style={{ margin: '0 auto 1.2rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}>
-            <path d="M16 2C8.268 2 2 8.268 2 16c0 5.4 3.056 10.09 7.525 12.396.643.332 1.341-.225 1.228-.934l-.84-5.267a1 1 0 01.374-.93L13.8 18.5a1 1 0 000-1.556l-3.513-2.763a1 1 0 01-.374-.93l.84-5.267c.113-.71-.585-1.266-1.228-.934A13.945 13.945 0 0016 4c7.732 0 14 6.268 14 14s-6.268 14-14 14c-1.325 0-2.613-.184-3.834-.53a.75.75 0 01-.52-.924l.583-2.036a.75.75 0 01.933-.51c.915.28 1.879.43 2.838.43 6.627 0 12-5.373 12-12S22.627 6 16 6 4 11.373 4 18c0 3.328 1.353 6.34 3.543 8.52a.75.75 0 001.21-.194l1.182-3.153a.75.75 0 00-.142-.816A9.957 9.957 0 018 16c0-4.418 3.582-8 8-8s8 3.582 8 8c0 2.27-.946 4.32-2.473 5.787a.75.75 0 00-.113.987l2.25 3a.75.75 0 001.127.086C28.026 23.36 30 19.907 30 16c0-7.732-6.268-14-14-14z" fill="var(--color-secondary)" />
-            <circle cx="16" cy="16" r="4" fill="var(--color-accent)" />
-          </svg>
-          <h1 style={{ fontSize: '1.9rem', marginBottom: '0.35rem', color: '#FAF7F2', fontFamily: 'var(--font-title)', letterSpacing: '0.5px' }}>Dhanti Masala</h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-01.webp" alt="Dhanti Foods Logo" width="48" height="48" style={{ display: 'block', margin: '0 auto 1.2rem', objectFit: 'contain', borderRadius: '4px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }} />
+          <h1 style={{ fontSize: '1.9rem', marginBottom: '0.35rem', color: '#FAF7F2', fontFamily: 'var(--font-title)', letterSpacing: '0.5px' }}>Dhanti Foods</h1>
           <p style={{ color: 'rgba(232, 223, 215, 0.65)', fontSize: '0.88rem', fontWeight: 500 }}>Secure Administration Portal</p>
         </div>
 

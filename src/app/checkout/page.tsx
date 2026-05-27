@@ -83,7 +83,7 @@ export default function CheckoutPage() {
         currency: orderData.currency || 'INR',
         name: 'Dhanti Masala',
         description: 'Wholesome aromatic South Indian spices',
-        image: '/logo.svg', // brand image
+        image: '/logo-01.webp', // brand image
         order_id: orderId,
         handler: async function (response: any) {
           // On successful payment, submit the order for verification and database creation

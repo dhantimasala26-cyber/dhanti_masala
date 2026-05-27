@@ -181,4 +181,14 @@
   .mobileMenuBtn {
     display: block;
   }
+
+  .logoImg {
+    width: 26px !important;
+    height: 26px !important;
+  }
+}
+
+.logoImg {
+  flex-shrink: 0;
+  object-fit: contain;
 }

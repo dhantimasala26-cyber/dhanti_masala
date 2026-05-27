@@ -192,3 +192,8 @@
     text-align: center;
   }
 }
+
+.logoImg {
+  flex-shrink: 0;
+  object-fit: contain;
+}
