@@ -248,7 +248,7 @@ export default function AdminSettingsPage() {
                   className="form-control" 
                   value={settings.phone}
                   onChange={handleChange}
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 866-0881905"
                 />
               </div>
 

@@ -133,7 +133,7 @@ export default function AdminOrdersPage() {
     const logoUrl = companySettings?.logo_url || '';
     const tagline = companySettings?.footer_tagline || 'Authentic Homemade Karnataka Spices';
     const email = companySettings?.email || 'support@dhantimasala.com';
-    const phone = companySettings?.phone || '+91 98765 43210';
+    const phone = companySettings?.phone || '+91 866-0881905';
     const address = companySettings?.address || 'Karnataka, India';
     const gstin = companySettings?.gstin || '';
     const fssai = companySettings?.fssai || '';
@@ -363,7 +363,7 @@ export default function AdminOrdersPage() {
     const logoUrl = companySettings?.logo_url || '';
     const tagline = companySettings?.footer_tagline || 'Authentic Homemade Karnataka Spices & Mixes';
     const email = companySettings?.email || 'support@dhantimasala.com';
-    const phone = companySettings?.phone || '+91 98765 43210';
+    const phone = companySettings?.phone || '+91 866-0881905';
     const address = companySettings?.address || 'Karnataka, India';
     const gstin = companySettings?.gstin || '';
     const fssai = companySettings?.fssai || '';

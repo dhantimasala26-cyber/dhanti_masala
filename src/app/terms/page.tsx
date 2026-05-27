@@ -96,7 +96,7 @@ export default function TermsPage() {
                   <br />
                   NO 28, 1ST FLOOR, 8TH CROSS, GANAPATHY NAGAR, RAJAGOPAL NAGAR AREA, II STAGE PEENYA, BANGALORE, B.B.M.P West, Karnataka - 560058
                   <br />
-                  Email: support@dhantimasala.com | Phone: +91 98765 43210
+                  Email: support@dhantimasala.com | Phone: +91 866-0881905
                 </p>
               </div>
 

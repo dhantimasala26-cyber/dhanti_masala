@@ -84,7 +84,7 @@ export default function ContactPage() {
                   </div>
                   <div className={styles.infoText}>
                     <span className={styles.infoLabel}>Call/WhatsApp</span>
-                    <span className={styles.infoValue}>+91 98450 12345</span>
+                    <span className={styles.infoValue}>+91 866-0881905</span>
                   </div>
                 </div>
               </div>
