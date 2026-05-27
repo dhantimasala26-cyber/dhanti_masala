@@ -1,8 +1,14 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+  title: 'About Dhanti Masala | Traditional Karnataka Homemade Food Brand',
+  description: 'Learn about Dhanti Masala, a Bangalore-based homemade food brand preserving authentic Karnataka recipes through premium spices, traditional preparation methods, and quality ingredients.',
+};
 
 export default function AboutPage() {
   return (
@@ -41,7 +47,7 @@ export default function AboutPage() {
                   "It started in a quiet Bangalore kitchen, with the comforting aroma of hand-roasted pepper, coriander, and fresh curry leaves."
                 </h2>
                 <p className={styles.text}>
-                  Dhanti Masala was born out of a simple family tradition. For decades, our grandmother prepared her signature Rasam Powder and roasted Ragi Hurihittu every month, sending packages to relatives across Bangalore and Mysore. The recipe was never written down; it was a matter of touch, aroma, and years of experience.
+                  Dhanti Masala was born out of a simple family tradition. For decades, our grandmother prepared her signature Sambar Powder and roasted Ragi Hurihittu every month, sending packages to relatives across Bangalore and Mysore. The recipe was never written down; it was a matter of touch, aroma, and years of experience.
                 </p>
                 <p className={styles.text}>
                   Seeing how commercial options lacked the depth of aroma and purity—relying heavily on artificial colors, stabilizers, and cheap fillers—we decided to share our family kitchen secrets with the world. We named the brand "Dhanti" to represent the grounding, ancient culinary wisdom of Karnataka.
@@ -68,7 +74,7 @@ export default function AboutPage() {
                   Mysore Jayamma is the culinary custodian behind every spice blend at Dhanti Masala. Born and raised in Mysore, she spent over five decades mastering the traditional food heritage of Karnataka. Her expertise in raw grain selection, ingredient pairings, and slow dry-roasting is the foundation of our recipes.
                 </p>
                 <p className={styles.text}>
-                  Jayamma personally guides the preparation of our signature Rasam Powder and roasted Ragi Hurihittu, ensuring that the ingredients are dry-roasted at low temperatures in iron kadhais to lock in natural essential oils. Her strict standards of purity mean we never compromise on quality or rely on artificial additives.
+                  Jayamma personally guides the preparation of our signature Sambar Powder and roasted Ragi Hurihittu, ensuring that the ingredients are dry-roasted at low temperatures in iron kadhais to lock in natural essential oils. Her strict standards of purity mean we never compromise on quality or rely on artificial additives.
                 </p>
               </div>
               <div className={styles.imageWrapper} style={{ height: '420px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -135,7 +141,7 @@ export default function AboutPage() {
           <div className="container">
             <h2 className={styles.ctaTitle}>Taste the Purity Yourself</h2>
             <p className={styles.ctaText}>
-              Discover our signature Rasam Powder and roasted Ragi Hurihittu, prepared in limited small batches.
+              Discover our signature Sambar Powder and roasted Ragi Hurihittu, prepared in limited small batches.
             </p>
             <Link href="/shop" className="btn btn-accent">
               Explore Our Shop

@@ -1,10 +1,16 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 
 export const revalidate = 0; // Dynamic rendering
+
+export const metadata: Metadata = {
+  title: 'Our Quality Process | Pure & Traditional Ingredients | Dhanti Masala',
+  description: 'Explore Dhanti Masala’s commitment to quality with handpicked spices, traditional roasting methods, hygienic packaging, and preservative-free homemade food products.',
+};
 
 const defaultQualitySteps = [
   {
@@ -116,7 +122,7 @@ export default async function QualityPage() {
                     </div>
                     <div>
                       <h4 className={styles.badgeTitle}>No Artificial Colors</h4>
-                      <p className={styles.badgeText}>The vibrant red of our Rasam Powder comes solely from premium, natural Byadagi chillies.</p>
+                      <p className={styles.badgeText}>The vibrant red of our Sambar Powder comes solely from premium, natural Byadagi chillies.</p>
                     </div>
                   </div>
 

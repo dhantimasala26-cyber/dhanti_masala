@@ -18,7 +18,7 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Dhanti Masala - Authentic Homemade Flavours from Karnataka",
-  description: "Experience the rich traditional taste of Bangalore-style Rasam Powder and nutritious Ragi Hurihittu. Handmade weekly in small batches with love, 100% pure.",
+  description: "Experience the rich traditional taste of Bangalore-style Sambar Powder and nutritious Ragi Hurihittu. Handmade weekly in small batches with love, 100% pure.",
   icons: {
     icon: "/favicon.ico",
   }

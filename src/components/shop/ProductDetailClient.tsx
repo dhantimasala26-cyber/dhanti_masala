@@ -62,7 +62,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ produc
       name: product.name,
       variant: selectedVariant,
       price: finalPrice,
-      image: product.images?.[0] || '/rasam_powder.jpg'
+      image: product.images?.[0] || '/sambar_powder.jpg'
     }, quantity);
 
     setSuccessMessage(`Success! Added ${quantity} x ${product.name} (${selectedVariant}) to cart.`);
@@ -80,7 +80,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ produc
       <div className={styles.gallery}>
         <div className={styles.imgWrapper}>
           <img 
-            src={product.images?.[0] || '/rasam_powder.jpg'} 
+            src={product.images?.[0] || '/sambar_powder.jpg'} 
             alt={product.name} 
             className={styles.productImg}
           />

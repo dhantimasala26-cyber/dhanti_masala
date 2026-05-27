@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -7,6 +8,11 @@ import { Product, Category } from '@/lib/types';
 import styles from './page.module.css';
 
 export const revalidate = 0; // Dynamic rendering
+
+export const metadata: Metadata = {
+  title: 'Shop Authentic Karnataka Masalas Online | Dhanti Masala',
+  description: 'Buy authentic homemade Karnataka food products online from Dhanti Masala. Explore premium Sambar Powder and Ragi Hurihittu crafted using traditional recipes and quality ingredients.',
+};
 
 const defaultCategories: Category[] = [
   {
@@ -30,21 +36,21 @@ const defaultCategories: Category[] = [
 const defaultProducts: Product[] = [
   {
     id: "a1111111-1111-1111-1111-111111111111",
-    name: "Traditional Rasam Powder",
-    slug: "rasam-powder",
-    short_description: "Handcrafted, authentic Bangalore-style Rasam powder with zero preservatives.",
-    description: "Bring the authentic flavor of traditional South Indian kitchens to your home with Dhanti Masala’s signature Rasam Powder.",
+    name: "Traditional Sambar Powder",
+    slug: "sambar-powder",
+    short_description: "Handcrafted, authentic Bangalore-style Sambar powder with zero preservatives.",
+    description: "Bring the authentic flavor of traditional South Indian kitchens to your home with Dhanti Masala’s signature Sambar Powder.",
     category_id: "c1111111-1111-1111-1111-111111111111",
-    images: ["/rasam_powder.jpg"],
+    images: ["/sambar_powder.jpg"],
     price: 150,
     discount_price: 140,
     weight_variants: ["250g", "500g", "1kg"],
     stock_quantities: { "250g": 120, "500g": 80, "1kg": 40 },
-    sku: "DM-RASAM-001",
+    sku: "DM-SAMBAR-001",
     featured: true,
     status: "active",
-    seo_title: "",
-    seo_description: "",
+    seo_title: "Authentic Karnataka Sambar Powder Online | Dhanti Masala",
+    seo_description: "Buy premium homemade Sambar Powder online from Dhanti Masala. Made with handpicked spices and traditional Karnataka recipes for rich aroma and authentic taste.",
     created_at: "",
     category: defaultCategories[0]
   },
@@ -63,8 +69,8 @@ const defaultProducts: Product[] = [
     sku: "DM-RAGI-002",
     featured: true,
     status: "active",
-    seo_title: "",
-    seo_description: "",
+    seo_title: "Traditional Ragi Hurihittu Online | Healthy Karnataka Ragi Mix",
+    seo_description: "Shop authentic Ragi Hurihittu from Dhanti Masala. Nutritious traditional Karnataka roasted ragi mix made with quality ingredients and homemade preparation methods.",
     created_at: "",
     category: defaultCategories[1]
   }
@@ -178,9 +184,9 @@ export default async function ShopPage({ searchParams }: ShopProps) {
                     <div key={product.id} className={styles.productCard}>
                       <div className={styles.imageWrapper}>
                         <span className={styles.badge}>100% Pure</span>
-                        <Link href={`/shop/${product.slug}`}>
+                        <Link href={`/products/${product.slug}`}>
                           <img
-                            src={product.images?.[0] || '/rasam_powder.jpg'}
+                            src={product.images?.[0] || '/sambar_powder.jpg'}
                             alt={product.name}
                             className={styles.productImg}
                           />
@@ -192,7 +198,7 @@ export default async function ShopPage({ searchParams }: ShopProps) {
                           {product.category?.name || 'Traditional Food'}
                         </span>
                         <h3 className={styles.productTitle}>
-                          <Link href={`/shop/${product.slug}`}>{product.name}</Link>
+                          <Link href={`/products/${product.slug}`}>{product.name}</Link>
                         </h3>
                         <p className={styles.productDesc}>{product.short_description}</p>
 
@@ -209,7 +215,7 @@ export default async function ShopPage({ searchParams }: ShopProps) {
                             </div>
                           </div>
 
-                          <Link href={`/shop/${product.slug}`} className="btn btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}>
+                          <Link href={`/products/${product.slug}`} className="btn btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}>
                             View Detail
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                               <line x1="5" y1="12" x2="19" y2="12" />

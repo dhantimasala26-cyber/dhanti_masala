@@ -48,12 +48,12 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/shop/rasam-powder" className={styles.link}>
-                  Rasam Powder
+                <Link href="/products/sambar-powder" className={styles.link}>
+                  Sambar Powder
                 </Link>
               </li>
               <li>
-                <Link href="/shop/ragi-hurihittu" className={styles.link}>
+                <Link href="/products/ragi-hurihittu" className={styles.link}>
                   Ragi Hurihittu
                 </Link>
               </li>
