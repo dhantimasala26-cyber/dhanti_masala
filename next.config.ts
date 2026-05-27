@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
 
 const isProduction = process.env.NODE_ENV === "production";
+const isVercel = process.env.VERCEL === "1" || !!process.env.NEXT_PUBLIC_VERCEL_URL;
 
 const nextConfig: NextConfig = {
-  // Static export for cPanel deployment (only in production build)
-  ...(isProduction && {
+  // Static export for cPanel deployment (only in production build and NOT on Vercel)
+  ...(isProduction && !isVercel && {
     output: "export",
     trailingSlash: true,
     images: {

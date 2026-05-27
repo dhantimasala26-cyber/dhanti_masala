@@ -1,0 +1,12 @@
+# Vercel Ignore File
+# Ignore backend directory as we only want to deploy the frontend to Vercel
+backend/
+
+# Ignore local configuration, database schema, and deployment files
+schema.sql
+start.bat
+.htaccess
+
+# Ignore Next.js static build outputs if any exist locally
+out/
+.next/
