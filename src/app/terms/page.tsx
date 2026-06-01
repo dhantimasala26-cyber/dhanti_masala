@@ -39,7 +39,7 @@ export default function TermsPage() {
                 </div>
 
                 <p>
-                  Welcome to <strong>Dhanti Masala</strong>. These Terms & Conditions govern your use of our website (dhantimasala.com) and the purchase of our home-style spices, health mixes, and traditional blends. By accessing or using this website, you agree to be bound by these terms. If you do not agree to all terms, please do not use our services.
+                  Welcome to <strong>Dhanti Masala</strong>. These Terms & Conditions govern your use of our website (dhantifoods.com) and the purchase of our home-style spices, health mixes, and traditional blends. By accessing or using this website, you agree to be bound by these terms. If you do not agree to all terms, please do not use our services.
                 </p>
 
                 <h2>1. General & Digital Commerce Compliance</h2>
@@ -96,7 +96,7 @@ export default function TermsPage() {
                   <br />
                   NO 28, 1ST FLOOR, 8TH CROSS, GANAPATHY NAGAR, RAJAGOPAL NAGAR AREA, II STAGE PEENYA, BANGALORE, B.B.M.P West, Karnataka - 560058
                   <br />
-                  Email: support@dhantimasala.com | Phone: +91 866-0881905
+                  Email: support@dhantifoods.com | Phone: +91 866-0881905
                 </p>
               </div>
 

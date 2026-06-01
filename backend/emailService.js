@@ -40,9 +40,9 @@ function formatCurrency(num) {
 // Send both customer order confirmation and admin notification emails
 async function sendOrderEmails(order, supabase) {
   const token = process.env.ZEPTOMAIL_TOKEN;
-  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantimasala.com";
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantifoods.com";
   const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
-  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL || "admin@dhantimasala.com";
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL || "admin@dhantifoods.com";
 
   if (!token) {
     console.warn("WARNING: ZEPTOMAIL_TOKEN is not configured in backend/.env. Order emails will not be sent.");
@@ -166,12 +166,12 @@ async function sendOrderEmails(order, supabase) {
             </p>
 
             <div class="btn-container">
-              <a href="https://dhantimasala.com" class="btn" target="_blank">Visit Our Shop</a>
+              <a href="https://dhantifoods.com" class="btn" target="_blank">Visit Our Shop</a>
             </div>
           </div>
           <div class="footer">
             <p>Need support? Reply to this email or call us at <strong>+91 866-0881905</strong></p>
-            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantimasala.com">Dhanti Masala</a>. All Rights Reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantifoods.com">Dhanti Masala</a>. All Rights Reserved.</p>
           </div>
         </div>
       </div>
@@ -274,7 +274,7 @@ async function sendOrderEmails(order, supabase) {
           </div>
 
           <div class="btn-container">
-            <a href="https://dhantimasala.com/admin/orders" class="btn" target="_blank">Manage Order in Admin Panel</a>
+            <a href="https://dhantifoods.com/admin/orders" class="btn" target="_blank">Manage Order in Admin Panel</a>
           </div>
         </div>
       </div>
@@ -343,7 +343,7 @@ async function sendOrderEmails(order, supabase) {
 // Send shipping update email with tracking information to customer
 async function sendShippingEmail(order, supabase) {
   const token = process.env.ZEPTOMAIL_TOKEN;
-  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantimasala.com";
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantifoods.com";
   const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
 
   if (!token) {
@@ -440,12 +440,12 @@ async function sendShippingEmail(order, supabase) {
             </p>
 
             <div class="btn-container">
-              <a href="https://dhantimasala.com" class="btn" target="_blank">Visit Our Shop</a>
+              <a href="https://dhantifoods.com" class="btn" target="_blank">Visit Our Shop</a>
             </div>
           </div>
           <div class="footer">
             <p>Need support? Reply to this email or call us at <strong>+91 866-0881905</strong></p>
-            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantimasala.com">Dhanti Masala</a>. All Rights Reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantifoods.com">Dhanti Masala</a>. All Rights Reserved.</p>
           </div>
         </div>
       </div>
@@ -470,12 +470,6 @@ async function sendShippingEmail(order, supabase) {
     htmlbody: shippingHtml
   };
 
-  const url = "https://api.zeptomail.in/v1.1/email";
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: token
-  };
-
   try {
     const res = await axios.post(url, payload, { headers });
     console.log(`[ZeptoMail] Shipping notification email sent successfully for ${invoiceNo}. Message ID:`, res.data?.message_id || "N/A");
@@ -484,9 +478,341 @@ async function sendShippingEmail(order, supabase) {
   }
 }
 
+// Send order status update email (delivery or payment changes)
+async function sendOrderStatusUpdateEmail(order, field, oldValue, newValue, supabase) {
+  const token = process.env.ZEPTOMAIL_TOKEN;
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantifoods.com";
+  const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
+
+  if (!token) {
+    console.warn("WARNING: ZEPTOMAIL_TOKEN is not configured in backend/.env. Status update email will not be sent.");
+    return;
+  }
+
+  const invoiceNo = await getInvoiceNumber(order, supabase);
+
+  let bannerText = "";
+  let bannerEmoji = "📦";
+  let explanation = "";
+  let subjectLine = "";
+
+  if (field === "delivery") {
+    if (newValue === "processing") {
+      bannerEmoji = "🍳";
+      bannerText = "Preparing Spices!";
+      explanation = "Great news! We have started preparing your order. Our team in Peenya, Bangalore is dry-roasting and traditionally grinding your spices fresh in small batches to preserve natural aromas and oils.";
+      subjectLine = `Your Dhanti Masala Order is now Processing! ${bannerEmoji}`;
+    } else if (newValue === "delivered") {
+      bannerEmoji = "🎉";
+      bannerText = "Order Delivered!";
+      explanation = "Hooray! Your package of handcrafted, authentic Karnataka flavors has been delivered. We hope these fresh spices bring warm smiles and beautiful aromas to your dining table.";
+      subjectLine = `Your Dhanti Masala Order has been Delivered! ${bannerEmoji}`;
+    } else if (newValue === "cancelled") {
+      bannerEmoji = "❌";
+      bannerText = "Order Cancelled";
+      explanation = "Your order has been cancelled. If you believe this is a mistake, or if you require any assistance regarding refunds or re-ordering, please reply directly to this email or call us at +91 866-0881905.";
+      subjectLine = `Dhanti Masala Order Cancelled ${bannerEmoji}`;
+    } else {
+      bannerEmoji = "📦";
+      bannerText = `Order Status: ${newValue.toUpperCase()}`;
+      explanation = `Your order status has been updated to ${newValue}.`;
+      subjectLine = `Dhanti Masala Order Update: ${newValue.toUpperCase()} ${bannerEmoji}`;
+    }
+  } else if (field === "payment") {
+    if (newValue === "paid") {
+      bannerEmoji = "✅";
+      bannerText = "Payment Received!";
+      explanation = `Thank you! We have successfully received and verified your payment of ${formatCurrency(order.total)}. Your order is safe in our hands, and we are preparing to roast and grind your spices fresh.`;
+      subjectLine = `Payment Confirmed - Invoice ${invoiceNo} ${bannerEmoji}`;
+    } else if (newValue === "failed") {
+      bannerEmoji = "⚠️";
+      bannerText = "Payment Failed";
+      explanation = `We were unable to process your payment for order ${invoiceNo}. Please review your transaction details or try a different payment method. If your account was charged, please contact us for immediate assistance.`;
+      subjectLine = `Payment Failed - Invoice ${invoiceNo} ${bannerEmoji}`;
+    } else {
+      bannerEmoji = "💳";
+      bannerText = `Payment: ${newValue.toUpperCase()}`;
+      explanation = `Your order's payment status has been updated to ${newValue.toUpperCase()}.`;
+      subjectLine = `Dhanti Masala Payment Update: ${newValue.toUpperCase()} ${bannerEmoji}`;
+    }
+  }
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${bannerText} - Dhanti Masala</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #faf6f0; color: #333333; margin: 0; padding: 0; }
+        .wrapper { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #ebd9c8; box-shadow: 0 4px 12px rgba(176, 74, 38, 0.05); }
+        .header { background-color: #B04A26; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; letter-spacing: 1px; font-weight: bold; }
+        .header p { color: #fdf0e7; margin: 5px 0 0 0; font-size: 13px; font-style: italic; opacity: 0.9; }
+        .content { padding: 30px; line-height: 1.6; }
+        .greeting { font-size: 18px; font-weight: bold; color: #B04A26; margin-top: 0; }
+        .status-banner { background-color: #fcf8f5; border: 1px dashed #B04A26; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px; }
+        .status-banner h2 { margin: 0 0 10px 0; color: #B04A26; font-size: 20px; }
+        .order-meta { background-color: #fcf8f5; border: 1px solid #f2e3d5; border-radius: 6px; padding: 15px; margin-bottom: 25px; font-size: 14px; }
+        .order-meta table { width: 100%; }
+        .order-meta td { padding: 4px 0; }
+        .order-meta .label { font-weight: bold; color: #666666; width: 35%; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        .items-table th { background-color: #f7ede2; color: #5c3e35; font-weight: bold; text-align: left; padding: 10px; font-size: 13px; border-bottom: 2px solid #e8d0be; }
+        .items-table td { padding: 12px 10px; border-bottom: 1px solid #f0e1d5; font-size: 14px; }
+        .total-row { font-weight: bold; background-color: #fdf5ef; }
+        .total-row td { border-top: 2px solid #B04A26; border-bottom: 2px solid #B04A26; color: #B04A26; font-size: 16px; }
+        .address-box { background-color: #fdfaf7; border-left: 3px solid #B04A26; padding: 15px; border-radius: 0 6px 6px 0; font-size: 14px; margin-bottom: 25px; }
+        .btn-container { text-align: center; margin: 30px 0 10px 0; }
+        .btn { display: inline-block; background-color: #B04A26; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 15px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(176, 74, 38, 0.15); }
+        .footer { background-color: #f5ece4; padding: 20px; text-align: center; font-size: 12px; color: #88726b; border-top: 1px solid #e8dbd0; }
+        .footer a { color: #B04A26; text-decoration: none; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div style="padding: 20px 0; background-color: #faf6f0;">
+        <div class="wrapper">
+          <div class="header">
+            <h1>${fromName}</h1>
+            <p>Authentic Homemade Karnataka Spices & Mixes</p>
+          </div>
+          <div class="content">
+            <p class="greeting">Namaskara ${order.customer_name},</p>
+            <p>We are writing to update you on your order status. Below are the details regarding your recent purchase.</p>
+            
+            <div class="status-banner">
+              <h2>${bannerEmoji} ${bannerText}</h2>
+              <p style="margin: 0; font-size: 14px; color: #5c3e35; line-height: 1.6;">${explanation}</p>
+            </div>
+            
+            <div class="order-meta">
+              <table>
+                <tr>
+                  <td class="label">Invoice No:</td>
+                  <td><strong>${invoiceNo}</strong></td>
+                </tr>
+                <tr>
+                  <td class="label">Order ID:</td>
+                  <td style="font-family: monospace;">${order.id.toUpperCase()}</td>
+                </tr>
+                <tr>
+                  <td class="label">Delivery Status:</td>
+                  <td style="text-transform: uppercase; font-weight: bold; color: #B04A26;">${order.delivery_status}</td>
+                </tr>
+                <tr>
+                  <td class="label">Payment Status:</td>
+                  <td style="text-transform: uppercase; font-weight: bold;">${order.payment_status}</td>
+                </tr>
+              </table>
+            </div>
+
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Item Description</th>
+                  <th style="text-align: center; width: 60px;">Qty</th>
+                  <th style="text-align: right; width: 100px;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${order.items.map(item => `
+                  <tr>
+                    <td>${item.name} (${item.variant})</td>
+                    <td style="text-align: center;">${item.qty}</td>
+                    <td style="text-align: right; font-weight: 500;">${formatCurrency(item.price * item.qty)}</td>
+                  </tr>
+                `).join("")}
+                <tr class="total-row">
+                  <td colspan="2" style="text-align: right; padding: 12px 10px;">Grand Total:</td>
+                  <td style="text-align: right; padding: 12px 10px;">${formatCurrency(order.total)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3 style="font-size: 15px; color: #B04A26; margin-bottom: 8px;">Delivery Address</h3>
+            <div class="address-box">
+              <strong>${order.customer_name}</strong><br>
+              ${order.shipping_address}<br>
+              ${order.city}, ${order.state} - <strong>${order.pincode}</strong><br>
+              Phone: ${order.customer_phone}
+            </div>
+
+            <div class="btn-container">
+              <a href="https://dhantifoods.com" class="btn" target="_blank">Visit Dhanti Masala</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Need support? Reply to this email or call us at <strong>+91 866-0881905</strong></p>
+            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantifoods.com">Dhanti Masala</a>. All Rights Reserved.</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const payload = {
+    from: {
+      address: fromAddress,
+      name: fromName
+    },
+    to: [
+      {
+        email_address: {
+          address: order.customer_email,
+          name: order.customer_name
+        }
+      }
+    ],
+    subject: subjectLine,
+    htmlbody: html
+  };
+
+  const url = "https://api.zeptomail.in/v1.1/email";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: token
+  };
+
+  try {
+    const res = await axios.post(url, payload, { headers });
+    console.log(`[ZeptoMail] Status update email sent successfully for ${invoiceNo}. Message ID:`, res.data?.message_id || "N/A");
+  } catch (err) {
+    console.error(`[ZeptoMail] Error sending status update email for ${invoiceNo}:`, err.response ? err.response.data : err.message);
+  }
+}
+
+// Send custom direct email from admin dashboard to customer
+async function sendDirectAdminEmail({ email, subject, message, template_type }) {
+  const token = process.env.ZEPTOMAIL_TOKEN;
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantifoods.com";
+  const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
+
+  if (!token) {
+    console.warn("WARNING: ZEPTOMAIL_TOKEN is not configured in backend/.env. Direct email will not be sent.");
+    return;
+  }
+
+  // Format message lines into paragraphs
+  const messageHtml = message
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => `<p style="margin: 0 0 1rem 0; line-height: 1.6; font-size: 15px;">${line}</p>`)
+    .join("");
+
+  let html = "";
+  if (template_type === "promo") {
+    html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6efe9; margin: 0; padding: 0; }
+          .wrapper { width: 100%; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e1cfbf; box-shadow: 0 6px 16px rgba(176, 74, 38, 0.08); }
+          .promo-header { background: linear-gradient(135deg, #B04A26 0%, #d6643c 100%); padding: 40px 30px; text-align: center; color: #ffffff; }
+          .promo-header h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .promo-header p { margin: 8px 0 0 0; font-size: 14px; opacity: 0.9; font-style: italic; }
+          .content { padding: 35px 30px; color: #443c39; }
+          .btn-container { text-align: center; margin: 30px 0 10px 0; }
+          .btn { display: inline-block; background-color: #B04A26; color: #ffffff !important; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(176, 74, 38, 0.25); }
+          .footer { background-color: #f7ece2; padding: 25px; text-align: center; font-size: 12px; color: #88726b; border-top: 1px solid #ebd9c8; }
+          .footer a { color: #B04A26; text-decoration: none; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="promo-header">
+            <h1>${fromName}</h1>
+            <p>Authentic South Indian Flavours Handcrafted For You</p>
+          </div>
+          <div class="content">
+            ${messageHtml}
+            <div class="btn-container">
+              <a href="https://dhantifoods.com" class="btn" target="_blank">Explore Our Store</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>You received this promotional message from the team at Dhanti Masala.</p>
+            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantifoods.com">Dhanti Masala</a>. All Rights Reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  } else {
+    html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #faf6f0; color: #333333; margin: 0; padding: 0; }
+          .wrapper { width: 100%; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #ebd9c8; box-shadow: 0 4px 12px rgba(176, 74, 38, 0.05); }
+          .header { background-color: #B04A26; padding: 25px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 0.5px; }
+          .content { padding: 30px; line-height: 1.6; color: #2d2624; }
+          .sig-box { border-top: 1px solid #f0e1d5; padding-top: 20px; margin-top: 30px; font-size: 14px; color: #5c3e35; }
+          .footer { background-color: #f5ece4; padding: 20px; text-align: center; font-size: 11px; color: #88726b; border-top: 1px solid #e8dbd0; }
+          .footer a { color: #B04A26; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="header">
+            <h1>${fromName} Support</h1>
+          </div>
+          <div class="content">
+            ${messageHtml}
+            <div class="sig-box">
+              <strong>Warm regards,</strong><br>
+              The Dhanti Masala Team<br>
+              <span style="font-size: 12px; color: #88726b;">NO 28, Peenya II Stage, Bangalore</span>
+            </div>
+          </div>
+          <div class="footer">
+            <p>This is a direct notification regarding your account or inquiries with <a href="https://dhantifoods.com">Dhanti Masala</a>.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  const payload = {
+    from: {
+      address: fromAddress,
+      name: fromName
+    },
+    to: [
+      {
+        email_address: {
+          address: email,
+          name: "Valued Customer"
+        }
+      }
+    ],
+    subject: subject,
+    htmlbody: html
+  };
+
+  const url = "https://api.zeptomail.in/v1.1/email";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: token
+  };
+
+  const res = await axios.post(url, payload, { headers });
+  console.log(`[ZeptoMail] Direct email sent successfully to ${email}. Message ID:`, res.data?.message_id || "N/A");
+  return res.data;
+}
+
 module.exports = {
   getInvoiceNumber,
   sendOrderEmails,
-  sendShippingEmail
+  sendShippingEmail,
+  sendOrderStatusUpdateEmail,
+  sendDirectAdminEmail
 };
 

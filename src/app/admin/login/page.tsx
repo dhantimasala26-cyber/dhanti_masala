@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
               type="email"
               required
               className="form-control"
-              placeholder="admin@dhantimasala.com"
+              placeholder="admin@dhantifoods.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onFocus={() => setEmailFocused(true)}

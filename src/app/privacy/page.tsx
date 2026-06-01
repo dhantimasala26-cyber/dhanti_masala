@@ -39,7 +39,7 @@ export default function PrivacyPage() {
                 </div>
 
                 <p>
-                  Dhanti Masala ("we", "our", "us") values the trust you place in us. This privacy policy explains what personal data we collect when you visit our website (dhantimasala.com), place an order, or subscribe to our newsletter, and how we protect and use that data.
+                  Dhanti Masala ("we", "our", "us") values the trust you place in us. This privacy policy explains what personal data we collect when you visit our website (dhantifoods.com), place an order, or subscribe to our newsletter, and how we protect and use that data.
                 </p>
 
                 <h2>1. Information We Collect</h2>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
                   <br />
                   Address: NO 28, 1ST FLOOR, 8TH CROSS, GANAPATHY NAGAR, RAJAGOPAL NAGAR AREA, II STAGE PEENYA, BANGALORE, B.B.M.P West, Karnataka - 560058
                   <br />
-                  Email: support@dhantimasala.com | Phone: +91 866-0881905
+                  Email: support@dhantifoods.com | Phone: +91 866-0881905
                 </p>
               </div>
 

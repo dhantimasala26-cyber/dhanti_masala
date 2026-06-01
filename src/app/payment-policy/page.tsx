@@ -73,7 +73,7 @@ export default function PaymentPolicyPage() {
                 <ul>
                   <li><strong>Money Debited but Order Not Confirmed:</strong> If funds are deducted from your account/card but you do not receive an order confirmation email, it is a bank transit dispute. Your money is completely safe. The gateway automatically detects failed bookings and initiates a reversal.</li>
                   <li><strong>Refund Timeline:</strong> The reversed amount is credited back to your original payment source (bank account, card, or wallet) within <strong>3 to 5 business days</strong> (depending on your bank's clearance cycles).</li>
-                  <li><strong>Assistance:</strong> If you do not receive the credit within 7 business days, please email us at support@dhantimasala.com with your transaction reference number and bank statement screenshot.</li>
+                  <li><strong>Assistance:</strong> If you do not receive the credit within 7 business days, please email us at support@dhantifoods.com with your transaction reference number and bank statement screenshot.</li>
                 </ul>
 
                 <h2>4. GST and Tax Invoices</h2>

@@ -72,7 +72,7 @@ export default function ContactPage() {
                   </div>
                   <div className={styles.infoText}>
                     <span className={styles.infoLabel}>Email Address</span>
-                    <span className={styles.infoValue}>hello@dhantimasala.com</span>
+                    <span className={styles.infoValue}>hello@dhantifoods.com</span>
                   </div>
                 </div>
 

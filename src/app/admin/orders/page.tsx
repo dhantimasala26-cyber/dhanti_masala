@@ -159,7 +159,7 @@ export default function AdminOrdersPage() {
     const companyName = companySettings?.company_name || 'Dhanti Masala';
     const logoUrl = companySettings?.logo_url || '';
     const tagline = companySettings?.footer_tagline || 'Authentic Homemade Karnataka Spices';
-    const email = companySettings?.email || 'support@dhantimasala.com';
+    const email = companySettings?.email || 'support@dhantifoods.com';
     const phone = companySettings?.phone || '+91 866-0881905';
     const address = companySettings?.address || 'Karnataka, India';
     const gstin = companySettings?.gstin || '';
@@ -312,7 +312,7 @@ export default function AdminOrdersPage() {
 
             <!-- Footer -->
             <div style="margin-top: 80px; text-align: center; border-top: 1px solid #E5E7EB; padding-top: 20px; font-size: 12px; color: #9CA3AF;">
-              Thank you for shopping with us! Visit <a href="https://dhantimasala.com" style="color: #B04A26; text-decoration: none; font-weight: 600;">dhantimasala.com</a> for more homemade flavors.
+              Thank you for shopping with us! Visit <a href="https://dhantifoods.com" style="color: #B04A26; text-decoration: none; font-weight: 600;">dhantifoods.com</a> for more homemade flavors.
             </div>
           </div>
         </body>
@@ -393,7 +393,7 @@ export default function AdminOrdersPage() {
     const companyName = companySettings?.company_name || 'Dhanti Masala';
     const logoUrl = companySettings?.logo_url || '';
     const tagline = companySettings?.footer_tagline || 'Authentic Homemade Karnataka Spices & Mixes';
-    const email = companySettings?.email || 'support@dhantimasala.com';
+    const email = companySettings?.email || 'support@dhantifoods.com';
     const phone = companySettings?.phone || '+91 866-0881905';
     const address = companySettings?.address || 'Karnataka, India';
     const gstin = companySettings?.gstin || '';
@@ -538,7 +538,7 @@ export default function AdminOrdersPage() {
 
           <!-- Footer -->
           <div style="margin-top: 80px; text-align: center; border-top: 1px solid #E5E7EB; padding-top: 20px; font-size: 12px; color: #9CA3AF;">
-            Thank you for shopping with us! Visit <a href="https://dhantimasala.com" style="color: #B04A26; text-decoration: none; font-weight: 600;">dhantimasala.com</a> for more homemade flavors.
+            Thank you for shopping with us! Visit <a href="https://dhantifoods.com" style="color: #B04A26; text-decoration: none; font-weight: 600;">dhantifoods.com</a> for more homemade flavors.
           </div>
         </div>
       `;

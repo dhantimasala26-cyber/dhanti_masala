@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useToast } from '@/context/ToastContext';
 
 interface QueryItem {
@@ -271,6 +272,13 @@ export default function AdminQueriesPage() {
                   </td>
                   <td style={{ textAlign: 'right', paddingRight: '1rem', whiteSpace: 'nowrap', verticalAlign: 'top', paddingTop: '0.85rem' }}>
                     <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                      <Link 
+                        href={`/admin/emails?email=${encodeURIComponent(query.email)}&subject=${encodeURIComponent(`Regarding your inquiry to Dhanti Masala`)}`}
+                        className="btn btn-primary"
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0.25rem 0.5rem', fontSize: '0.72rem', height: '30px', textDecoration: 'none' }}
+                      >
+                        ✉️ Reply
+                      </Link>
                       <button onClick={() => setActiveQuery(query)} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.72rem', height: '30px' }}>
                         View
                       </button>
@@ -377,6 +385,13 @@ export default function AdminQueriesPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <Link
+                href={`/admin/emails?email=${encodeURIComponent(activeQuery.email)}&subject=${encodeURIComponent(`Regarding your inquiry to Dhanti Masala`)}`}
+                className="btn btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: '40px', padding: '0 1.25rem', textDecoration: 'none' }}
+              >
+                ✉️ Reply via Email
+              </Link>
               <button
                 type="button"
                 onClick={() => handleToggleStatus(activeQuery.id, activeQuery.status)}

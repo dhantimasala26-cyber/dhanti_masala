@@ -235,7 +235,7 @@ export default function AdminSettingsPage() {
                   className="form-control" 
                   value={settings.email}
                   onChange={handleChange}
-                  placeholder="contact@dhantimasala.com"
+                  placeholder="contact@dhantifoods.com"
                 />
               </div>
 

@@ -57,7 +57,7 @@ export default function ReturnPolicyPage() {
                   To report an issue and request a replacement or refund, please follow these steps:
                 </p>
                 <ol>
-                  <li><strong>Timeline:</strong> Contact our support team via email (support@dhantimasala.com) or WhatsApp (+91 866-0881905) within <strong>48 hours</strong> of receiving the delivery. Requests received after 48 hours will not be processed.</li>
+                  <li><strong>Timeline:</strong> Contact our support team via email (support@dhantifoods.com) or WhatsApp (+91 866-0881905) within <strong>48 hours</strong> of receiving the delivery. Requests received after 48 hours will not be processed.</li>
                   <li><strong>Unboxing Proof (Recommended):</strong> To speed up transit damage claims, we strongly recommend recording a brief unboxing video when opening the shipping package for the first time.</li>
                   <li><strong>Photos:</strong> Provide clear photos showing the damage, the shipping label, and the batch number on the spice pouch.</li>
                 </ol>
@@ -85,7 +85,7 @@ export default function ReturnPolicyPage() {
                 <p>
                   We are here to help you. For any issues regarding your spice orders, please reach out to us:
                   <br />
-                  📧 Email: support@dhantimasala.com
+                  📧 Email: support@dhantifoods.com
                   <br />
                   💬 WhatsApp/Call: +91 866-0881905
                   <br />

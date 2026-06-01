@@ -15,13 +15,13 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const { createClient } = require("@supabase/supabase-js");
 const ws = require("ws");
 const axios = require("axios");
-const { sendOrderEmails } = require("./emailService");
+const { sendOrderEmails, sendOrderStatusUpdateEmail, sendDirectAdminEmail } = require("./emailService");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.SUPABASE_KEY || "";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@dhantimasala.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@dhantifoods.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 const PORT = process.env.PORT || 8080;
 
@@ -704,13 +704,14 @@ app.put("/api/orders", requireAdmin, async (req, res) => {
     if (tracking_code !== undefined) updates.tracking_code = tracking_code;
     if (delivery_partner !== undefined) updates.delivery_partner = delivery_partner;
 
-    // Fetch the old delivery status to check if it transitions to shipped
+    // Fetch the old delivery and payment status to check for transitions
     const oldOrderRes = await supabase
       .from("orders")
-      .select("delivery_status")
+      .select("delivery_status, payment_status")
       .eq("id", id)
       .maybeSingle();
     const oldStatus = oldOrderRes.data?.delivery_status;
+    const oldPaymentStatus = oldOrderRes.data?.payment_status;
 
     const result = await supabase
       .from("orders")
@@ -731,11 +732,38 @@ app.put("/api/orders", requireAdmin, async (req, res) => {
       sendShippingEmail(updatedOrder, supabase).catch((emailErr) => {
         console.error("Failed to send shipping email asynchronously:", emailErr);
       });
+    } else if (delivery_status !== undefined && delivery_status !== oldStatus && delivery_status !== "shipped") {
+      // Trigger status update email (processing, delivered, cancelled)
+      sendOrderStatusUpdateEmail(updatedOrder, "delivery", oldStatus, delivery_status, supabase).catch((emailErr) => {
+        console.error("Failed to send delivery status update email asynchronously:", emailErr);
+      });
+    }
+
+    if (payment_status !== undefined && payment_status !== oldPaymentStatus) {
+      // Trigger payment status update email (paid, failed)
+      sendOrderStatusUpdateEmail(updatedOrder, "payment", oldPaymentStatus, payment_status, supabase).catch((emailErr) => {
+        console.error("Failed to send payment status update email asynchronously:", emailErr);
+      });
     }
 
     return res.json({ success: true, order: updatedOrder });
   } catch (e) {
     return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+// POST /api/admin/send-email (Admin only - send direct email to a customer)
+app.post("/api/admin/send-email", requireAdmin, async (req, res) => {
+  try {
+    const { email, subject, message, template_type } = req.body || {};
+    if (!email || !subject || !message) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+    const result = await sendDirectAdminEmail({ email, subject, message, template_type });
+    return res.json({ success: true, result });
+  } catch (e) {
+    console.error("Error in /api/admin/send-email:", e);
+    return res.status(500).json({ success: false, message: String(e.message || e) });
   }
 });
 

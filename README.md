@@ -35,7 +35,7 @@ SUPABASE_URL=https://your-supabase-project.supabase.co
 # CRITICAL: You MUST use the "service_role" secret key here so the backend
 # can bypass RLS policies and successfully insert/update records.
 SUPABASE_KEY=your-secret-service-role-key
-ADMIN_EMAIL=admin@dhantimasala.com
+ADMIN_EMAIL=admin@dhantifoods.com
 ADMIN_PASSWORD=admin123
 UPLOAD_DIR=../public/uploads
 ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
