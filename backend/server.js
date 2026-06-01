@@ -23,7 +23,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.SUPABASE_KEY || "";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@dhantimasala.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || "";
 const BUNNY_STORAGE_API_KEY = process.env.BUNNY_STORAGE_API_KEY || "";
@@ -808,6 +808,6 @@ app.post("/api/upload", requireAdmin, upload.single("file"), async (req, res) =>
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, `localhost`, () => {
     console.log(`Server is running on port ${PORT}`);
 });
