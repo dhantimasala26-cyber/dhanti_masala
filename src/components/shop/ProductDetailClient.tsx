@@ -10,13 +10,33 @@ interface ProductDetailClientProps {
   product: Product;
 }
 
-// Helper to scale price based on pack size variants
-const getVariantMultiplier = (variant: string): number => {
-  switch (variant.toLowerCase()) {
-    case '500g': return 1.9; // 5% savings for 500g
-    case '1kg': return 3.6;  // 10% savings for 1kg
-    default: return 1.0;     // Base is 250g
+// Helper to parse weight strings (e.g. '250g', '1kg') to grams
+const parseWeightToGrams = (weightStr: string): number => {
+  const clean = weightStr.toLowerCase().trim();
+  const num = parseFloat(clean);
+  if (isNaN(num)) return 250; // fallback
+  if (clean.includes('kg')) return num * 1000;
+  if (clean.includes('g')) return num;
+  return num; // fallback
+};
+
+// Helper to scale price based on pack size variants relative to the base variant
+const getVariantMultiplier = (variant: string, variants: string[]): number => {
+  if (!variants || variants.length === 0) return 1.0;
+  const baseVariant = variants[0];
+  const baseWeight = parseWeightToGrams(baseVariant);
+  const selectedWeight = parseWeightToGrams(variant);
+  
+  if (baseWeight <= 0) return 1.0;
+  const ratio = selectedWeight / baseWeight;
+  
+  // Apply standard bulk discount based on ratio of selected weight to base weight
+  if (ratio >= 4) {
+    return Math.round(ratio * 0.9 * 10) / 10; // 10% discount for 4x or more
+  } else if (ratio >= 2) {
+    return Math.round(ratio * 0.95 * 10) / 10; // 5% discount for 2x
   }
+  return ratio;
 };
 
 export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ product }) => {
@@ -35,10 +55,13 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ produc
   }, [selectedVariant]);
 
   // Pricing calculations
-  const multiplier = getVariantMultiplier(selectedVariant);
-  const currentPrice = Math.round(product.price * multiplier);
-  const currentDiscountPrice = product.discount_price 
-    ? Math.round(product.discount_price * multiplier) 
+  const basePrice = Number(product.price);
+  const baseDiscountPrice = product.discount_price ? Number(product.discount_price) : null;
+
+  const multiplier = getVariantMultiplier(selectedVariant, product.weight_variants || []);
+  const currentPrice = Math.round(basePrice * multiplier);
+  const currentDiscountPrice = baseDiscountPrice 
+    ? Math.round(baseDiscountPrice * multiplier) 
     : null;
   const isDiscounted = currentDiscountPrice !== null && currentDiscountPrice < currentPrice;
   const finalPrice = isDiscounted ? (currentDiscountPrice as number) : currentPrice;

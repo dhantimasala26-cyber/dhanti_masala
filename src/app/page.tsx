@@ -224,7 +224,9 @@ export default async function HomePage() {
             </div>
             <div className={styles.productsGrid}>
               {featuredProducts.map((product) => {
-                const discounted = product.discount_price !== null && product.discount_price < product.price;
+                const priceNum = Number(product.price);
+                const discountPriceNum = product.discount_price !== null ? Number(product.discount_price) : null;
+                const discounted = discountPriceNum !== null && discountPriceNum < priceNum;
                 return (
                   <div key={product.id} className={styles.productCard}>
                     <div className={styles.productImgWrapper}>

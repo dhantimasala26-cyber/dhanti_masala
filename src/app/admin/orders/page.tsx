@@ -13,6 +13,27 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [companySettings, setCompanySettings] = useState<any>(null);
 
+  // Helper to compute a sequential, fiscal-year-based invoice number
+  const getInvoiceNumber = (order: Order) => {
+    // Sort all orders in ascending order of creation date
+    const sorted = [...orders].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const index = sorted.findIndex(o => o.id === order.id);
+    const seq = index !== -1 ? index + 1 : 1;
+    const paddedSeq = seq.toString().padStart(4, '0');
+    
+    const date = new Date(order.created_at);
+    const month = date.getMonth(); // 0-11
+    const year = date.getFullYear();
+    let fiscalYear = '';
+    if (month >= 3) { // April to December
+      fiscalYear = `${year}-${(year + 1).toString().slice(-2)}`;
+    } else { // January to March
+      fiscalYear = `${year - 1}-${year.toString().slice(-2)}`;
+    }
+    
+    return `DM/${fiscalYear}/${paddedSeq}`;
+  };
+
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -137,6 +158,7 @@ export default function AdminOrdersPage() {
     const address = companySettings?.address || 'Karnataka, India';
     const gstin = companySettings?.gstin || '';
     const fssai = companySettings?.fssai || '';
+    const invoiceNo = getInvoiceNumber(order);
 
     // Create a hidden temporary iframe
     const iframe = document.createElement('iframe');
@@ -167,7 +189,7 @@ export default function AdminOrdersPage() {
     doc.write(`
       <html>
         <head>
-          <title>Order Receipt - ${order.id.split('-')[0].toUpperCase()}</title>
+          <title>Invoice - ${invoiceNo}</title>
           <style>
             body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; padding: 20px; background: white; margin: 0; }
             table { width: 100%; border-collapse: collapse; }
@@ -207,8 +229,9 @@ export default function AdminOrdersPage() {
                   </div>
                 </td>
                 <td style="text-align: right; vertical-align: top;">
-                  <div style="font-size: 24px; font-weight: bold; color: #333; letter-spacing: 1px; margin-bottom: 8px;">INVOICE</div>
-                  <div style="font-size: 13px; color: #555;"><strong>Order ID:</strong> ${order.id.toUpperCase()}</div>
+                  <div style="font-size: 24px; font-weight: bold; color: #333; letter-spacing: 1px; margin-bottom: 8px;">TAX INVOICE</div>
+                  <div style="font-size: 13px; color: #555;"><strong>Invoice No:</strong> ${invoiceNo}</div>
+                  <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Order ID:</strong> ${order.id.toUpperCase()}</div>
                   <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}</div>
                 </td>
               </tr>
@@ -302,12 +325,14 @@ export default function AdminOrdersPage() {
   };
 
   const fallbackTextDownload = (order: Order) => {
+    const invoiceNo = getInvoiceNumber(order);
     const header = `==================================================\n` +
                    `                 DHANTI MASALA                    \n` +
                    `   Authentic Homemade Karnataka Spices & Mixes    \n` +
                    `==================================================\n\n` +
-                   `INVOICE / ORDER SUMMARY\n` +
+                   `TAX INVOICE / ORDER SUMMARY\n` +
                    `--------------------------------------------------\n` +
+                   `Invoice No:    ${invoiceNo}\n` +
                    `Order ID:      ${order.id.toUpperCase()}\n` +
                    `Order Date:    ${new Date(order.created_at).toLocaleString('en-IN')}\n` +
                    `Order Status:  ${order.delivery_status.toUpperCase()}\n` +
@@ -351,7 +376,7 @@ export default function AdminOrdersPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `invoice_${order.id.split('-')[0].toUpperCase()}.txt`;
+    link.download = `invoice_${invoiceNo.replace(/\//g, '_')}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -367,6 +392,7 @@ export default function AdminOrdersPage() {
     const address = companySettings?.address || 'Karnataka, India';
     const gstin = companySettings?.gstin || '';
     const fssai = companySettings?.fssai || '';
+    const invoiceNo = getInvoiceNumber(order);
 
     showToast('Preparing PDF download...', 'info');
     try {
@@ -429,8 +455,9 @@ export default function AdminOrdersPage() {
                 </div>
               </td>
               <td style="text-align: right; vertical-align: top;">
-                <div style="font-size: 24px; font-weight: bold; color: #333; letter-spacing: 1px; margin-bottom: 8px;">INVOICE</div>
-                <div style="font-size: 13px; color: #555;"><strong>Order ID:</strong> ${order.id.toUpperCase()}</div>
+                <div style="font-size: 24px; font-weight: bold; color: #333; letter-spacing: 1px; margin-bottom: 8px;">TAX INVOICE</div>
+                <div style="font-size: 13px; color: #555;"><strong>Invoice No:</strong> ${invoiceNo}</div>
+                <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Order ID:</strong> ${order.id.toUpperCase()}</div>
                 <div style="font-size: 13px; color: #555; margin-top: 3px;"><strong>Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}</div>
               </td>
             </tr>
@@ -515,7 +542,7 @@ export default function AdminOrdersPage() {
 
       const opt = {
         margin:       10,
-        filename:     `invoice_${order.id.split('-')[0].toUpperCase()}.pdf`,
+        filename:     `invoice_${invoiceNo.replace(/\//g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2.5, useCORS: true, logging: false, letterRendering: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -651,7 +678,7 @@ export default function AdminOrdersPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
             <thead>
               <tr style={{ backgroundColor: '#F8F9FA', borderBottom: '2px solid var(--color-border)', color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                <th style={{ padding: '1rem' }}>Order ID</th>
+                <th style={{ padding: '1rem' }}>Invoice No</th>
                 <th>Date</th>
                 <th>Customer Details</th>
                 <th>Total Bill</th>
@@ -665,7 +692,7 @@ export default function AdminOrdersPage() {
               {filteredOrders.map((order) => (
                 <tr key={order.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                   <td style={{ padding: '1rem', fontFamily: 'monospace', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                    {order.id.split('-')[0].toUpperCase()}
+                    {getInvoiceNumber(order)}
                   </td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
                     {new Date(order.created_at).toLocaleDateString('en-IN', {
@@ -761,13 +788,17 @@ export default function AdminOrdersPage() {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={`Manage Order #${selectedOrder.id.split('-')[0].toUpperCase()}`}
+          title={`Manage Invoice - ${getInvoiceNumber(selectedOrder)}`}
           size="large"
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', padding: '1rem 0' }}>
             
             {/* Left Column: Items and Customer Info */}
             <div>
+              <div style={{ marginBottom: '1.5rem', padding: '0.75rem', backgroundColor: 'var(--color-bg-light)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', fontSize: '0.85rem' }}>
+                <strong>Invoice No:</strong> {getInvoiceNumber(selectedOrder)}<br />
+                <strong>Order ID:</strong> {selectedOrder.id.toUpperCase()}
+              </div>
               <h3 style={{ fontSize: '1rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Line Items</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
                 {selectedOrder.items.map((item, idx) => (

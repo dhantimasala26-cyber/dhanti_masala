@@ -15,6 +15,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const { createClient } = require("@supabase/supabase-js");
 const ws = require("ws");
 const axios = require("axios");
+const { sendOrderEmails } = require("./emailService");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -680,6 +681,11 @@ app.post("/api/orders", async (req, res) => {
           .eq("code", coupon_code);
       }
     }
+
+    // Trigger order email notifications asynchronously
+    sendOrderEmails(newOrder, supabase).catch((emailErr) => {
+      console.error("Failed to send order emails asynchronously:", emailErr);
+    });
 
     return res.json({ success: true, order: newOrder });
   } catch (e) {

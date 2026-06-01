@@ -179,7 +179,9 @@ export default async function ShopPage({ searchParams }: ShopProps) {
             ) : (
               <div className={styles.productsGrid}>
                 {products.map((product) => {
-                  const discounted = product.discount_price !== null && product.discount_price < product.price;
+                  const priceNum = Number(product.price);
+                  const discountPriceNum = product.discount_price !== null ? Number(product.discount_price) : null;
+                  const discounted = discountPriceNum !== null && discountPriceNum < priceNum;
                   return (
                     <div key={product.id} className={styles.productCard}>
                       <div className={styles.imageWrapper}>
