@@ -696,11 +696,21 @@ app.post("/api/orders", async (req, res) => {
 // PUT /api/orders
 app.put("/api/orders", requireAdmin, async (req, res) => {
   try {
-    const { id, payment_status, delivery_status, transaction_id } = req.body;
+    const { id, payment_status, delivery_status, transaction_id, tracking_code, delivery_partner } = req.body;
     const updates = {};
     if (payment_status !== undefined) updates.payment_status = payment_status;
     if (delivery_status !== undefined) updates.delivery_status = delivery_status;
     if (transaction_id !== undefined) updates.transaction_id = transaction_id;
+    if (tracking_code !== undefined) updates.tracking_code = tracking_code;
+    if (delivery_partner !== undefined) updates.delivery_partner = delivery_partner;
+
+    // Fetch the old delivery status to check if it transitions to shipped
+    const oldOrderRes = await supabase
+      .from("orders")
+      .select("delivery_status")
+      .eq("id", id)
+      .maybeSingle();
+    const oldStatus = oldOrderRes.data?.delivery_status;
 
     const result = await supabase
       .from("orders")
@@ -712,7 +722,18 @@ app.put("/api/orders", requireAdmin, async (req, res) => {
         .status(404)
         .json({ detail: "Order not found or update failed" });
     }
-    return res.json({ success: true, order: result.data[0] });
+
+    const updatedOrder = result.data[0];
+
+    // Trigger shipping email if transitioned to 'shipped'
+    if (delivery_status === "shipped" && oldStatus !== "shipped") {
+      const { sendShippingEmail } = require("./emailService");
+      sendShippingEmail(updatedOrder, supabase).catch((emailErr) => {
+        console.error("Failed to send shipping email asynchronously:", emailErr);
+      });
+    }
+
+    return res.json({ success: true, order: updatedOrder });
   } catch (e) {
     return res.status(500).json({ detail: String(e.message || e) });
   }

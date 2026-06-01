@@ -19,6 +19,7 @@ export interface Product {
   discount_price: number | null;
   weight_variants: string[];
   stock_quantities: Record<string, number>; // variant weight -> stock quantity
+  prices?: Record<string, { price: number; discount_price: number | null }>;
   sku: string | null;
   featured: boolean;
   status: 'active' | 'draft' | 'archived';
@@ -58,6 +59,8 @@ export interface Order {
   delivery_status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   transaction_id: string | null;
   coupon_code: string | null;
+  tracking_code?: string | null;
+  delivery_partner?: string | null;
   created_at: string;
 }
 

@@ -6,6 +6,32 @@ import { Modal } from '@/components/UI/Modal';
 import { useToast } from '@/context/ToastContext';
 import { apiUrl } from '@/lib/api';
 
+const parseWeightToGrams = (weightStr: string): number => {
+  const clean = weightStr.toLowerCase().trim();
+  const num = parseFloat(clean);
+  if (isNaN(num)) return 250;
+  if (clean.includes('kg')) return num * 1000;
+  if (clean.includes('g')) return num;
+  return num;
+};
+
+const getVariantMultiplier = (variant: string, variants: string[]): number => {
+  if (!variants || variants.length === 0) return 1.0;
+  const baseVariant = variants[0];
+  const baseWeight = parseWeightToGrams(baseVariant);
+  const selectedWeight = parseWeightToGrams(variant);
+  
+  if (baseWeight <= 0) return 1.0;
+  const ratio = selectedWeight / baseWeight;
+  
+  if (ratio >= 4) {
+    return Math.round(ratio * 0.9 * 10) / 10;
+  } else if (ratio >= 2) {
+    return Math.round(ratio * 0.95 * 10) / 10;
+  }
+  return ratio;
+};
+
 export default function AdminProductsPage() {
   const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,18 +61,36 @@ export default function AdminProductsPage() {
       currentStocks = JSON.parse(formData.stock_quantities || '{}');
     } catch (e) {}
 
+    let currentPrices: Record<string, { price: number; discount_price: number | null }> = {};
+    try {
+      currentPrices = JSON.parse(formData.prices || '{}');
+    } catch (e) {}
+
     if (exists) {
       updatedVariants = currentVariants.filter(v => v !== cleanVariant);
       delete currentStocks[cleanVariant];
+      delete currentPrices[cleanVariant];
     } else {
       updatedVariants = [...currentVariants, cleanVariant];
       currentStocks[cleanVariant] = currentStocks[cleanVariant] ?? 0;
+      if (!currentPrices[cleanVariant]) {
+        const mult = getVariantMultiplier(cleanVariant, [currentVariants[0] || cleanVariant, cleanVariant]);
+        const calculatedPrice = Math.round((parseFloat(formData.price) || 0) * mult);
+        const calculatedDiscountPrice = formData.discount_price 
+          ? Math.round(parseFloat(formData.discount_price) * mult)
+          : null;
+        currentPrices[cleanVariant] = {
+          price: calculatedPrice || 0,
+          discount_price: calculatedDiscountPrice
+        };
+      }
     }
 
     setFormData(prev => ({
       ...prev,
       weight_variants: updatedVariants.join(', '),
-      stock_quantities: JSON.stringify(currentStocks)
+      stock_quantities: JSON.stringify(currentStocks),
+      prices: JSON.stringify(currentPrices)
     }));
   };
 
@@ -73,10 +117,27 @@ export default function AdminProductsPage() {
       currentStocks[cleanVariant] = 0;
     }
 
+    let currentPrices: Record<string, { price: number; discount_price: number | null }> = {};
+    try {
+      currentPrices = JSON.parse(formData.prices || '{}');
+    } catch (e) {}
+    if (!(cleanVariant in currentPrices)) {
+      const mult = getVariantMultiplier(cleanVariant, [currentVariants[0] || cleanVariant, cleanVariant]);
+      const calculatedPrice = Math.round((parseFloat(formData.price) || 0) * mult);
+      const calculatedDiscountPrice = formData.discount_price 
+        ? Math.round(parseFloat(formData.discount_price) * mult)
+        : null;
+      currentPrices[cleanVariant] = {
+        price: calculatedPrice || 0,
+        discount_price: calculatedDiscountPrice
+      };
+    }
+
     setFormData(prev => ({
       ...prev,
       weight_variants: updatedVariants.join(', '),
-      stock_quantities: JSON.stringify(currentStocks)
+      stock_quantities: JSON.stringify(currentStocks),
+      prices: JSON.stringify(currentPrices)
     }));
     setNewVariantInput('');
   };
@@ -94,10 +155,17 @@ export default function AdminProductsPage() {
     } catch (e) {}
     delete currentStocks[variantName];
 
+    let currentPrices: Record<string, { price: number; discount_price: number | null }> = {};
+    try {
+      currentPrices = JSON.parse(formData.prices || '{}');
+    } catch (e) {}
+    delete currentPrices[variantName];
+
     setFormData(prev => ({
       ...prev,
       weight_variants: updatedVariants.join(', '),
-      stock_quantities: JSON.stringify(currentStocks)
+      stock_quantities: JSON.stringify(currentStocks),
+      prices: JSON.stringify(currentPrices)
     }));
   };
 
@@ -112,6 +180,40 @@ export default function AdminProductsPage() {
     setFormData(prev => ({
       ...prev,
       stock_quantities: JSON.stringify(currentStocks)
+    }));
+  };
+
+  const updateVariantPrice = (variantName: string, price: number) => {
+    let currentPrices: Record<string, { price: number; discount_price: number | null }> = {};
+    try {
+      currentPrices = JSON.parse(formData.prices || '{}');
+    } catch (e) {}
+    
+    if (!currentPrices[variantName]) {
+      currentPrices[variantName] = { price: 0, discount_price: null };
+    }
+    currentPrices[variantName].price = Math.max(0, price);
+
+    setFormData(prev => ({
+      ...prev,
+      prices: JSON.stringify(currentPrices)
+    }));
+  };
+
+  const updateVariantDiscountPrice = (variantName: string, discountPrice: number | null) => {
+    let currentPrices: Record<string, { price: number; discount_price: number | null }> = {};
+    try {
+      currentPrices = JSON.parse(formData.prices || '{}');
+    } catch (e) {}
+    
+    if (!currentPrices[variantName]) {
+      currentPrices[variantName] = { price: 0, discount_price: null };
+    }
+    currentPrices[variantName].discount_price = discountPrice !== null && discountPrice > 0 ? discountPrice : null;
+
+    setFormData(prev => ({
+      ...prev,
+      prices: JSON.stringify(currentPrices)
     }));
   };
 
@@ -159,6 +261,7 @@ export default function AdminProductsPage() {
     status: 'active' as 'active' | 'draft' | 'archived',
     weight_variants: '250g, 500g, 1kg',
     stock_quantities: '{"250g": 50, "500g": 30, "1kg": 15}',
+    prices: '{"250g": {"price": 150, "discount_price": 140}, "500g": {"price": 280, "discount_price": 260}, "1kg": {"price": 520, "discount_price": 490}}',
     image_url: '/rasam_powder.jpg',
     shelf_life: '',
     origin: '',
@@ -214,6 +317,7 @@ export default function AdminProductsPage() {
       status: 'active',
       weight_variants: '250g, 500g, 1kg',
       stock_quantities: '{"250g": 50, "500g": 30, "1kg": 15}',
+      prices: '{"250g": {"price": 150, "discount_price": 140}, "500g": {"price": 280, "discount_price": 260}, "1kg": {"price": 520, "discount_price": 490}}',
       image_url: '/rasam_powder.jpg',
       shelf_life: '',
       origin: '',
@@ -237,6 +341,7 @@ export default function AdminProductsPage() {
       status: product.status,
       weight_variants: product.weight_variants?.join(', ') || '250g, 500g, 1kg',
       stock_quantities: JSON.stringify(product.stock_quantities) || '{"250g": 0}',
+      prices: JSON.stringify(product.prices || {}),
       image_url: product.images?.[0] || '/rasam_powder.jpg',
       shelf_life: product.shelf_life || '',
       origin: product.origin || '',
@@ -279,6 +384,14 @@ export default function AdminProductsPage() {
       return;
     }
 
+    let pricesObj = {};
+    try {
+      pricesObj = JSON.parse(formData.prices || '{}');
+    } catch (err) {
+      showToast('Invalid JSON for variant prices.', 'error');
+      return;
+    }
+
     const payload = {
       id: editingId,
       name: formData.name,
@@ -291,6 +404,7 @@ export default function AdminProductsPage() {
       discount_price: formData.discount_price || null,
       weight_variants: weights,
       stock_quantities: stocks,
+      prices: pricesObj,
       sku: formData.sku || null,
       featured: formData.featured,
       status: formData.status,
@@ -668,15 +782,13 @@ export default function AdminProductsPage() {
                   ));
                 })()}
               </div>
-            </div>
-
-            {/* Part 2: Stock Allocator */}
+                {/* Part 2: Inventory & Price Configuration */}
             <div>
               <label className="form-label" style={{ fontWeight: 700, fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)' }}>
-                Step 2: Inventory Allocation (Specify stock quantities)
+                Step 2: Inventory &amp; Price Configuration (Specify stock quantities and prices)
               </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
                 {(() => {
                   const variants = formData.weight_variants
                     ? formData.weight_variants.split(',').map(v => v.trim()).filter(Boolean)
@@ -685,12 +797,17 @@ export default function AdminProductsPage() {
                   try {
                     currentStocks = JSON.parse(formData.stock_quantities || '{}');
                   } catch (e) {}
+
+                  let currentPrices: Record<string, { price: number; discount_price: number | null }> = {};
+                  try {
+                    currentPrices = JSON.parse(formData.prices || '{}');
+                  } catch (e) {}
                   
                   if (variants.length === 0) {
                     return (
                       <div style={{ gridColumn: '1 / -1', border: '1px dashed var(--color-border)', borderRadius: '8px', padding: '1.5rem', textAlign: 'center', backgroundColor: 'white' }}>
                         <span style={{ fontStyle: 'italic', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                          Add or select weight packet variants above to allocate stock quantities.
+                          Add or select weight packet variants above to allocate stock quantities and prices.
                         </span>
                       </div>
                     );
@@ -698,6 +815,8 @@ export default function AdminProductsPage() {
 
                   return variants.map(variant => {
                     const qty = currentStocks[variant] ?? 0;
+                    const variantPrice = currentPrices[variant]?.price ?? '';
+                    const variantDiscountPrice = currentPrices[variant]?.discount_price ?? '';
                     
                     // Determine stock status styling
                     let statusLabel = 'In Stock';
@@ -760,93 +879,128 @@ export default function AdminProductsPage() {
                         </div>
 
                         {/* Stepper control */}
-                        <div style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          border: '1px solid var(--color-border)', 
-                          borderRadius: '6px', 
-                          overflow: 'hidden',
-                          backgroundColor: '#FAF9F6'
-                        }}>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              const step = e.shiftKey ? 10 : 1;
-                              updateVariantStock(variant, Math.max(0, qty - step));
-                            }}
-                            title="Decrease Stock (Shift+Click to decrease by 10)"
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              border: 'none',
-                              background: '#F0ECE6',
-                              color: 'var(--color-text-dark)',
-                              fontSize: '1.1rem',
-                              fontWeight: 'bold',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'background-color 0.2s',
-                              outline: 'none'
-                            }}
-                            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#E5DFD5'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#F0ECE6'; }}
-                          >
-                            −
-                          </button>
-                          <input 
-                            type="number"
-                            min={0}
-                            required
-                            value={qty}
-                            onChange={(e) => updateVariantStock(variant, Math.max(0, parseInt(e.target.value) || 0))}
-                            style={{ 
-                              flex: 1,
-                              border: 'none',
-                              background: 'white',
-                              height: '36px',
-                              fontSize: '0.95rem', 
-                              fontWeight: 700,
-                              textAlign: 'center',
-                              color: 'var(--color-text-dark)',
-                              width: '100%',
-                              outline: 'none',
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              const step = e.shiftKey ? 10 : 1;
-                              updateVariantStock(variant, qty + step);
-                            }}
-                            title="Increase Stock (Shift+Click to increase by 10)"
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              border: 'none',
-                              background: '#F0ECE6',
-                              color: 'var(--color-text-dark)',
-                              fontSize: '1.1rem',
-                              fontWeight: 'bold',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'background-color 0.2s',
-                              outline: 'none'
-                            }}
-                            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#E5DFD5'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#F0ECE6'; }}
-                          >
-                            +
-                          </button>
+                        <div>
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem', display: 'block' }}>Stock Quantity</label>
+                          <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            border: '1px solid var(--color-border)', 
+                            borderRadius: '6px', 
+                            overflow: 'hidden',
+                            backgroundColor: '#FAF9F6'
+                          }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const step = e.shiftKey ? 10 : 1;
+                                updateVariantStock(variant, Math.max(0, qty - step));
+                              }}
+                              title="Decrease Stock (Shift+Click to decrease by 10)"
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                border: 'none',
+                                background: '#F0ECE6',
+                                color: 'var(--color-text-dark)',
+                                fontSize: '1.1rem',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background-color 0.2s',
+                                outline: 'none'
+                              }}
+                              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#E5DFD5'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#F0ECE6'; }}
+                            >
+                              −
+                            </button>
+                            <input 
+                              type="number"
+                              min={0}
+                              required
+                              value={qty}
+                              onChange={(e) => updateVariantStock(variant, Math.max(0, parseInt(e.target.value) || 0))}
+                              style={{ 
+                                flex: 1,
+                                border: 'none',
+                                background: 'white',
+                                height: '36px',
+                                fontSize: '0.95rem', 
+                                fontWeight: 700,
+                                textAlign: 'center',
+                                color: 'var(--color-text-dark)',
+                                width: '100%',
+                                outline: 'none',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const step = e.shiftKey ? 10 : 1;
+                                updateVariantStock(variant, qty + step);
+                              }}
+                              title="Increase Stock (Shift+Click to increase by 10)"
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                border: 'none',
+                                background: '#F0ECE6',
+                                color: 'var(--color-text-dark)',
+                                fontSize: '1.1rem',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background-color 0.2s',
+                                outline: 'none'
+                              }}
+                              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#E5DFD5'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#F0ECE6'; }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Price & Discount price inputs */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                          <div className="form-group" style={{ margin: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>Price (₹)</label>
+                            <input 
+                              type="number" 
+                              min={0}
+                              placeholder="e.g. 150"
+                              className="form-control"
+                              style={{ height: '36px', padding: '0.4rem', fontSize: '0.85rem' }}
+                              value={variantPrice}
+                              onChange={(e) => updateVariantPrice(variant, parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="form-group" style={{ margin: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.2rem' }}>Discount (₹)</label>
+                            <input 
+                              type="number" 
+                              min={0}
+                              placeholder="e.g. 140"
+                              className="form-control"
+                              style={{ height: '36px', padding: '0.4rem', fontSize: '0.85rem' }}
+                              value={variantDiscountPrice}
+                              onChange={(e) => {
+                                const val = e.target.value.trim();
+                                updateVariantDiscountPrice(variant, val !== '' ? parseFloat(val) : null);
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     );
                   });
                 })()}
               </div>
+            </div>
             </div>
           </div>
 

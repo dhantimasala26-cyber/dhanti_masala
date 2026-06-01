@@ -340,7 +340,153 @@ async function sendOrderEmails(order, supabase) {
   }
 }
 
+// Send shipping update email with tracking information to customer
+async function sendShippingEmail(order, supabase) {
+  const token = process.env.ZEPTOMAIL_TOKEN;
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantimasala.com";
+  const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
+
+  if (!token) {
+    console.warn("WARNING: ZEPTOMAIL_TOKEN is not configured in backend/.env. Shipping email will not be sent.");
+    return;
+  }
+
+  const invoiceNo = await getInvoiceNumber(order, supabase);
+
+  const shippingHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Your Order Has Shipped - Dhanti Masala</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #faf6f0; color: #333333; margin: 0; padding: 0; }
+        .wrapper { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #ebd9c8; box-shadow: 0 4px 12px rgba(176, 74, 38, 0.05); }
+        .header { background-color: #B04A26; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; letter-spacing: 1px; font-weight: bold; }
+        .header p { color: #fdf0e7; margin: 5px 0 0 0; font-size: 13px; font-style: italic; opacity: 0.9; }
+        .content { padding: 30px; line-height: 1.6; }
+        .greeting { font-size: 18px; font-weight: bold; color: #B04A26; margin-top: 0; }
+        .shipping-banner { background-color: #f7ede2; border: 1px dashed #B04A26; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px; }
+        .shipping-banner h2 { margin: 0 0 10px 0; color: #B04A26; font-size: 20px; }
+        .shipping-details { width: 100%; margin-bottom: 25px; border-collapse: collapse; }
+        .shipping-details td { padding: 12px; border: 1px solid #f0e1d5; font-size: 14px; }
+        .shipping-details .label { font-weight: bold; color: #5c3e35; background-color: #fcf8f5; width: 40%; }
+        .order-meta { background-color: #fcf8f5; border: 1px solid #f2e3d5; border-radius: 6px; padding: 15px; margin-bottom: 25px; font-size: 14px; }
+        .order-meta table { width: 100%; }
+        .order-meta td { padding: 4px 0; }
+        .order-meta .label-small { font-weight: bold; color: #666666; width: 35%; }
+        .address-box { background-color: #fdfaf7; border-left: 3px solid #B04A26; padding: 15px; border-radius: 0 6px 6px 0; font-size: 14px; margin-bottom: 25px; }
+        .btn-container { text-align: center; margin: 30px 0 10px 0; }
+        .btn { display: inline-block; background-color: #B04A26; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 15px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(176, 74, 38, 0.15); }
+        .footer { background-color: #f5ece4; padding: 20px; text-align: center; font-size: 12px; color: #88726b; border-top: 1px solid #e8dbd0; }
+        .footer a { color: #B04A26; text-decoration: none; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div style="padding: 20px 0; background-color: #faf6f0;">
+        <div class="wrapper">
+          <div class="header">
+            <h1>${fromName}</h1>
+            <p>Authentic Homemade Karnataka Spices & Mixes</p>
+          </div>
+          <div class="content">
+            <p class="greeting">Namaskara ${order.customer_name},</p>
+            <p>Great news! Your order has been freshly packed and dispatched from our Peenya facility in Bangalore. Our delivery partner has picked it up and it is on the way to your kitchen.</p>
+            
+            <div class="shipping-banner">
+              <h2>🚚 Shipped & On The Way!</h2>
+              <p style="margin: 0; font-size: 14px; color: #5c3e35;">Your package of authentic Karnataka flavors is in transit.</p>
+            </div>
+
+            <table class="shipping-details">
+              <tr>
+                <td class="label">Delivery Partner</td>
+                <td><strong>${order.delivery_partner || "Standard Courier"}</strong></td>
+              </tr>
+              <tr>
+                <td class="label">Tracking Code / AWB</td>
+                <td><strong style="font-family: monospace; font-size: 15px; color: #B04A26;">${order.tracking_code || "N/A"}</strong></td>
+              </tr>
+            </table>
+
+            <div class="order-meta">
+              <table style="width: 100%;">
+                <tr>
+                  <td class="label-small">Invoice No:</td>
+                  <td><strong>${invoiceNo}</strong></td>
+                </tr>
+                <tr>
+                  <td class="label-small">Order ID:</td>
+                  <td style="font-family: monospace;">${order.id.toUpperCase()}</td>
+                </tr>
+                <tr>
+                  <td class="label-small">Order Date:</td>
+                  <td>${new Date(order.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</td>
+                </tr>
+              </table>
+            </div>
+
+            <h3 style="font-size: 15px; color: #B04A26; margin-bottom: 8px;">Shipping Destination</h3>
+            <div class="address-box">
+              <strong>${order.customer_name}</strong><br>
+              ${order.shipping_address}<br>
+              ${order.city}, ${order.state} - <strong>${order.pincode}</strong><br>
+              Phone: ${order.customer_phone}
+            </div>
+
+            <p style="font-size: 13px; color: #666666;">
+              Please note: It may take up to 24 hours for the tracking details to become active on the courier partner's portal.
+            </p>
+
+            <div class="btn-container">
+              <a href="https://dhantimasala.com" class="btn" target="_blank">Visit Our Shop</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Need support? Reply to this email or call us at <strong>+91 866-0881905</strong></p>
+            <p>&copy; ${new Date().getFullYear()} <a href="https://dhantimasala.com">Dhanti Masala</a>. All Rights Reserved.</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const payload = {
+    from: {
+      address: fromAddress,
+      name: fromName
+    },
+    to: [
+      {
+        email_address: {
+          address: order.customer_email,
+          name: order.customer_name
+        }
+      }
+    ],
+    subject: `Your Dhanti Masala Order ${invoiceNo} Has Shipped! 🚚`,
+    htmlbody: shippingHtml
+  };
+
+  const url = "https://api.zeptomail.in/v1.1/email";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: token
+  };
+
+  try {
+    const res = await axios.post(url, payload, { headers });
+    console.log(`[ZeptoMail] Shipping notification email sent successfully for ${invoiceNo}. Message ID:`, res.data?.message_id || "N/A");
+  } catch (err) {
+    console.error(`[ZeptoMail] Error sending shipping notification email for ${invoiceNo}:`, err.response ? err.response.data : err.message);
+  }
+}
+
 module.exports = {
   getInvoiceNumber,
-  sendOrderEmails
+  sendOrderEmails,
+  sendShippingEmail
 };
+

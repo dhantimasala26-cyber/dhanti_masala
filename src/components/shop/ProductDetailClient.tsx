@@ -55,14 +55,25 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ produc
   }, [selectedVariant]);
 
   // Pricing calculations
-  const basePrice = Number(product.price);
-  const baseDiscountPrice = product.discount_price ? Number(product.discount_price) : null;
+  let currentPrice: number;
+  let currentDiscountPrice: number | null = null;
 
-  const multiplier = getVariantMultiplier(selectedVariant, product.weight_variants || []);
-  const currentPrice = Math.round(basePrice * multiplier);
-  const currentDiscountPrice = baseDiscountPrice 
-    ? Math.round(baseDiscountPrice * multiplier) 
-    : null;
+  if (product.prices && product.prices[selectedVariant]) {
+    const variantConfig = product.prices[selectedVariant];
+    currentPrice = Number(variantConfig.price);
+    currentDiscountPrice = variantConfig.discount_price !== null && variantConfig.discount_price !== undefined
+      ? Number(variantConfig.discount_price)
+      : null;
+  } else {
+    // Fallback to legacy multiplier logic if custom prices are not set for this variant
+    const basePrice = Number(product.price);
+    const baseDiscountPrice = product.discount_price ? Number(product.discount_price) : null;
+    const multiplier = getVariantMultiplier(selectedVariant, product.weight_variants || []);
+    currentPrice = Math.round(basePrice * multiplier);
+    currentDiscountPrice = baseDiscountPrice 
+      ? Math.round(baseDiscountPrice * multiplier) 
+      : null;
+  }
   const isDiscounted = currentDiscountPrice !== null && currentDiscountPrice < currentPrice;
   const finalPrice = isDiscounted ? (currentDiscountPrice as number) : currentPrice;
 

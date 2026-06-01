@@ -283,5 +283,9 @@ create policy "Allow public delete to contact_queries" on contact_queries for de
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_life text DEFAULT '6 Months from date of packaging';
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS origin text DEFAULT 'Bangalore, Karnataka, India';
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS purity_checklist text DEFAULT '100% Preservative-free, Handcrafted, Roasted traditionally';
+-- ALTER TABLE products ADD COLUMN IF NOT EXISTS prices jsonb DEFAULT '{}'::jsonb NOT NULL;
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code text;
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_partner text;
+
 
 

@@ -47,6 +47,8 @@ export default function AdminOrdersPage() {
   const [editPaymentStatus, setEditPaymentStatus] = useState<Order['payment_status']>('pending');
   const [editDeliveryStatus, setEditDeliveryStatus] = useState<Order['delivery_status']>('pending');
   const [editTransactionId, setEditTransactionId] = useState('');
+  const [editTrackingCode, setEditTrackingCode] = useState('');
+  const [editDeliveryPartner, setEditDeliveryPartner] = useState('');
   const [saving, setSaving] = useState(false);
 
   const loadOrders = async () => {
@@ -113,6 +115,8 @@ export default function AdminOrdersPage() {
     setEditPaymentStatus(order.payment_status);
     setEditDeliveryStatus(order.delivery_status);
     setEditTransactionId(order.transaction_id || '');
+    setEditTrackingCode(order.tracking_code || '');
+    setEditDeliveryPartner(order.delivery_partner || '');
     setIsModalOpen(true);
   };
 
@@ -129,7 +133,9 @@ export default function AdminOrdersPage() {
           id: selectedOrder.id,
           payment_status: editPaymentStatus,
           delivery_status: editDeliveryStatus,
-          transaction_id: editTransactionId || null
+          transaction_id: editTransactionId || null,
+          tracking_code: editTrackingCode || null,
+          delivery_partner: editDeliveryPartner || null
         })
       });
 
@@ -876,6 +882,33 @@ export default function AdminOrdersPage() {
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
+
+                {editDeliveryStatus === 'shipped' && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Delivery Partner *</label>
+                      <input 
+                        type="text"
+                        required
+                        className="form-control"
+                        placeholder="e.g. Delhivery, BlueDart, DTDC"
+                        value={editDeliveryPartner}
+                        onChange={(e) => setEditDeliveryPartner(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Tracking Code / AWB *</label>
+                      <input 
+                        type="text"
+                        required
+                        className="form-control"
+                        placeholder="e.g. 123456789"
+                        value={editTrackingCode}
+                        onChange={(e) => setEditTrackingCode(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="form-group">
                   <label className="form-label">Payment Gateway Reference</label>
