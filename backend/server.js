@@ -808,6 +808,6 @@ app.post("/api/upload", requireAdmin, upload.single("file"), async (req, res) =>
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 
-app.listen(PORT, `localhost`, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });
