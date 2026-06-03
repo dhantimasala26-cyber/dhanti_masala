@@ -470,6 +470,12 @@ async function sendShippingEmail(order, supabase) {
     htmlbody: shippingHtml
   };
 
+  const url = "https://api.zeptomail.in/v1.1/email";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: token
+  };
+
   try {
     const res = await axios.post(url, payload, { headers });
     console.log(`[ZeptoMail] Shipping notification email sent successfully for ${invoiceNo}. Message ID:`, res.data?.message_id || "N/A");
