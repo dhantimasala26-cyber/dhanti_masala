@@ -73,6 +73,11 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/orders" className={styles.link}>
+                  Track Order
+                </Link>
+              </li>
+              <li>
                 <Link href="/contact" className={styles.link}>
                   Contact Us
                 </Link>

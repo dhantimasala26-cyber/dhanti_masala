@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import styles from './Navbar.module.css';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { cartItems } = useCart();
+  const { customer, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.qty, 0);
@@ -64,10 +66,62 @@ export const Navbar: React.FC = () => {
               Contact
             </Link>
           </li>
+          
+          {/* Mobile Auth Links (hidden on desktop if we use icons, but let's show them here for simplicity) */}
+          {customer ? (
+            <>
+              <li className={styles.mobileOnly}>
+                <Link href="/orders" onClick={() => setMobileMenuOpen(false)} className={navClass('/orders')}>
+                  My Orders
+                </Link>
+              </li>
+              <li className={styles.mobileOnly}>
+                <button onClick={() => { logout(); setMobileMenuOpen(false); }} className={styles.navLink} style={{background:'none', border:'none', cursor:'pointer', textAlign:'left'}}>
+                  Logout ({customer.name})
+                </button>
+              </li>
+            </>
+          ) : (
+            <li className={styles.mobileOnly}>
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={navClass('/login')}>
+                Login / Sign Up
+              </Link>
+            </li>
+          )}
         </nav>
 
-        {/* Action Buttons (Cart, Admin Login, Mobile Menu) */}
+        {/* Action Buttons (Auth, Cart, Mobile Menu) */}
         <div className={styles.actions}>
+          {/* Auth Icon Desktop */}
+          <div className={styles.desktopOnly} style={{ marginRight: '0.5rem' }}>
+            {customer ? (
+              <div className={styles.dropdownContainer}>
+                <button className={styles.iconBtn} aria-label="Profile">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </button>
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.userName}>{customer.name}</div>
+                  <Link href="/orders" className={styles.dropdownItem}>
+                    My Orders
+                  </Link>
+                  <button onClick={logout} className={styles.dropdownItem}>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link href="/login" title="Login" className={styles.iconBtn}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+              </Link>
+            )}
+          </div>
           {/* Admin Dashboard Lock Icon */}
           {/* <Link href="/admin/login" title="Admin Portal" className={styles.iconBtn}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

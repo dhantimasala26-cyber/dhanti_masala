@@ -15,6 +15,8 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const { createClient } = require("@supabase/supabase-js");
 const ws = require("ws");
 const axios = require("axios");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { sendOrderEmails, sendOrderStatusUpdateEmail, sendDirectAdminEmail } = require("./emailService");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
@@ -23,6 +25,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.SUPABASE_KEY || "";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@dhantifoods.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const JWT_SECRET = process.env.JWT_SECRET || "dhanti-masala-secret-key-123!";
 const PORT = process.env.PORT || 8080;
 
 const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE || "";
@@ -127,6 +130,119 @@ app.get("/api/auth/session", (req, res) => {
   const authenticated =
     req.cookies?.dhanti_admin_session === "authenticated";
   return res.json({ authenticated });
+});
+
+// ─── Customer Auth Middleware ──────────────────────────────────────────────────
+function requireCustomer(req, res, next) {
+  const token = req.cookies?.dhanti_customer_session;
+  if (!token) {
+    return res.status(401).json({ detail: "Unauthorized - Please log in" });
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // { id, email, name }
+    next();
+  } catch (err) {
+    return res.status(401).json({ detail: "Invalid session - Please log in again" });
+  }
+}
+
+// ─── Customer Auth Routes ──────────────────────────────────────────────────────
+
+// POST /api/auth/customer/signup
+app.post("/api/auth/customer/signup", async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body || {};
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ detail: "Missing required fields" });
+    }
+
+    const { data: existing } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+
+    if (existing) {
+      return res.status(400).json({ detail: "Email already in use" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    const { data, error } = await supabase
+      .from("customers")
+      .insert({
+        name,
+        email: email.toLowerCase(),
+        phone,
+        password_hash,
+      })
+      .select();
+
+    if (error || !data || data.length === 0) {
+      return res.status(500).json({ detail: "Failed to create account" });
+    }
+
+    const customer = data[0];
+    const token = jwt.sign(
+      { id: customer.id, email: customer.email, name: customer.name, phone: customer.phone },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("dhanti_customer_session", token, { ...cookieOpts, maxAge: 7 * 86400 * 1000 });
+    return res.json({ success: true, customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } });
+  } catch (e) {
+    return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+// POST /api/auth/customer/login
+app.post("/api/auth/customer/login", async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ detail: "Missing email or password" });
+    }
+
+    const { data: customer } = await supabase
+      .from("customers")
+      .select("id, name, email, phone, password_hash")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+
+    if (!customer || !customer.password_hash) {
+      return res.status(401).json({ detail: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, customer.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ detail: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { id: customer.id, email: customer.email, name: customer.name, phone: customer.phone },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("dhanti_customer_session", token, { ...cookieOpts, maxAge: 7 * 86400 * 1000 });
+    return res.json({ success: true, customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } });
+  } catch (e) {
+    return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+// POST /api/auth/customer/logout
+app.post("/api/auth/customer/logout", (_req, res) => {
+  res.cookie("dhanti_customer_session", "", { ...cookieOpts, maxAge: 0 });
+  return res.json({ success: true, message: "Logged out successfully" });
+});
+
+// GET /api/auth/customer/me
+app.get("/api/auth/customer/me", requireCustomer, (req, res) => {
+  return res.json({ success: true, customer: req.user });
 });
 
 // ─── Categories Routes ────────────────────────────────────────────────────────
@@ -554,8 +670,22 @@ app.get("/api/orders", requireAdmin, async (_req, res) => {
   }
 });
 
-// POST /api/orders  (public — place an order)
-app.post("/api/orders", async (req, res) => {
+// GET /api/orders/my-orders (Customer only)
+app.get("/api/orders/my-orders", requireCustomer, async (req, res) => {
+  try {
+    const result = await supabase
+      .from("orders")
+      .select("*")
+      .eq("customer_id", req.user.id)
+      .order("created_at", { ascending: false });
+    return res.json({ success: true, orders: result.data || [] });
+  } catch (e) {
+    return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+// POST /api/orders  (protected — place an order)
+app.post("/api/orders", requireCustomer, async (req, res) => {
   try {
     const order = req.body;
 
@@ -591,6 +721,7 @@ app.post("/api/orders", async (req, res) => {
     }
 
     const orderData = {
+      customer_id: req.user.id,
       customer_name,
       customer_email,
       customer_phone,
@@ -634,36 +765,23 @@ app.post("/api/orders", async (req, res) => {
       }
     }
 
-    // Upsert customer record
+    // Update customer record stats
     const nowIso = new Date().toISOString();
     const custRes = await supabase
       .from("customers")
-      .select("*")
-      .eq("email", customer_email)
-      .maybeSingle();
-    const existingCustomer = custRes.data;
-
-    if (existingCustomer) {
+      .select("total_orders, total_spent")
+      .eq("id", req.user.id)
+      .single();
+      
+    if (custRes.data) {
       await supabase
         .from("customers")
         .update({
-          name: customer_name,
-          phone: customer_phone,
-          total_orders: (existingCustomer.total_orders || 0) + 1,
-          total_spent:
-            parseFloat(existingCustomer.total_spent || 0) + parseFloat(total),
+          total_orders: (custRes.data.total_orders || 0) + 1,
+          total_spent: parseFloat(custRes.data.total_spent || 0) + parseFloat(total),
           last_order_date: nowIso,
         })
-        .eq("id", existingCustomer.id);
-    } else {
-      await supabase.from("customers").insert({
-        name: customer_name,
-        email: customer_email,
-        phone: customer_phone,
-        total_orders: 1,
-        total_spent: total,
-        last_order_date: nowIso,
-      });
+        .eq("id", req.user.id);
     }
 
     // Increment coupon usage count

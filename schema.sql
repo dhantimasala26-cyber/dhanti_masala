@@ -53,6 +53,7 @@ create table if not exists coupons (
 -- 4. Orders Table
 create table if not exists orders (
     id uuid default gen_random_uuid() primary key,
+    customer_id uuid references customers(id) on delete set null,
     customer_name text not null,
     customer_email text not null,
     customer_phone text not null,
@@ -78,6 +79,7 @@ create table if not exists customers (
     name text not null,
     email text not null unique,
     phone text not null,
+    password_hash text,
     total_orders integer default 0 not null,
     total_spent numeric default 0 not null,
     last_order_date timestamp with time zone,
@@ -286,6 +288,8 @@ create policy "Allow public delete to contact_queries" on contact_queries for de
 -- ALTER TABLE products ADD COLUMN IF NOT EXISTS prices jsonb DEFAULT '{}'::jsonb NOT NULL;
 -- ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code text;
 -- ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_partner text;
+-- ALTER TABLE customers ADD COLUMN IF NOT EXISTS password_hash text;
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id uuid references customers(id) on delete set null;
 
 
 
