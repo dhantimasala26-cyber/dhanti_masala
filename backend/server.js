@@ -70,7 +70,15 @@ const app = express();
 
 app.use(
   cors({
-    origin: origins,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      // Allow any localhost or 127.0.0.1 port in development
+      const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      if (isLocalhost || origins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

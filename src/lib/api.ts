@@ -15,6 +15,12 @@ const cleanApiBase = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
 
 export function apiUrl(path: string): string {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // In development browser environment, return relative path to let Next.js dev proxy handle it and avoid CORS
+  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    return cleanPath;
+  }
+  
   return `${cleanApiBase}${cleanPath}`;
 }
 
@@ -36,18 +42,21 @@ if (typeof window !== 'undefined') {
       };
     }
 
-    if (typeof input === 'string') {
-      if (input.startsWith('/api')) {
-        finalInput = `${cleanApiBase}${input}`;
-      }
-    } else if (input instanceof URL) {
-      if (input.pathname.startsWith('/api')) {
-        finalInput = new URL(input.pathname + input.search, cleanApiBase);
-      }
-    } else if (input && typeof input === 'object' && 'url' in input) {
-      const req = input as Request;
-      if (req.url.startsWith('/api')) {
-        finalInput = new Request(`${cleanApiBase}${req.url}`, req);
+    // In development browser environment, do not rewrite relative paths to absolute URLs to allow Next.js proxying
+    if (process.env.NODE_ENV !== 'development') {
+      if (typeof input === 'string') {
+        if (input.startsWith('/api')) {
+          finalInput = `${cleanApiBase}${input}`;
+        }
+      } else if (input instanceof URL) {
+        if (input.pathname.startsWith('/api')) {
+          finalInput = new URL(input.pathname + input.search, cleanApiBase);
+        }
+      } else if (input && typeof input === 'object' && 'url' in input) {
+        const req = input as Request;
+        if (req.url.startsWith('/api')) {
+          finalInput = new Request(`${cleanApiBase}${req.url}`, req);
+        }
       }
     }
 
