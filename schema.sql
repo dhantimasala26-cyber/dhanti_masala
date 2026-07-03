@@ -293,3 +293,24 @@ create policy "Allow public delete to contact_queries" on contact_queries for de
 
 
 
+-- 8. Stock Notifications Table
+create table if not exists stock_notifications (
+    id uuid default gen_random_uuid() primary key,
+    customer_id uuid references customers(id) on delete cascade,
+    customer_email text not null,
+    product_id uuid references products(id) on delete cascade,
+    variant text not null,
+    status text default 'pending' check (status in ('pending', 'notified')),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    unique (customer_id, product_id, variant, status)
+);
+
+-- Enable RLS on stock_notifications
+alter table stock_notifications enable row level security;
+create policy "Allow public read access to stock_notifications" on stock_notifications for select using (true);
+create policy "Allow public insert to stock_notifications" on stock_notifications for insert with check (true);
+create policy "Allow public update to stock_notifications" on stock_notifications for update using (true);
+create policy "Allow public delete to stock_notifications" on stock_notifications for delete using (true);
+
+
+

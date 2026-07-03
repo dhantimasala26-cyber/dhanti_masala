@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
+import { apiUrl } from '@/lib/api';
 import styles from './ProductDetailClient.module.css';
 
 interface ProductDetailClientProps {
@@ -41,12 +45,90 @@ const getVariantMultiplier = (variant: string, variants: string[]): number => {
 
 export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const { customer } = useAuth();
+  const { showToast } = useToast();
+  const router = useRouter();
   
   // Set default variant if available
   const defaultVariant = product.weight_variants?.[0] || '250g';
   const [selectedVariant, setSelectedVariant] = useState<string>(defaultVariant);
   const [quantity, setQuantity] = useState<number>(1);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [notifying, setNotifying] = useState<boolean>(false);
+
+  // Auto-trigger pending notifications from localStorage if user just logged in
+  useEffect(() => {
+    const checkPendingNotification = async () => {
+      if (!customer) return;
+      
+      const pendingProductId = localStorage.getItem('pending_notify_product_id');
+      const pendingVariant = localStorage.getItem('pending_notify_variant');
+      
+      if (pendingProductId === product.id && pendingVariant === selectedVariant) {
+        localStorage.removeItem('pending_notify_product_id');
+        localStorage.removeItem('pending_notify_variant');
+        
+        try {
+          const token = localStorage.getItem('dhanti_customer_token');
+          const res = await fetch(apiUrl('/api/auth/customer/notify-me'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: JSON.stringify({ productId: product.id, variant: selectedVariant })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showToast(data.message || 'Notification request registered successfully!', 'success');
+          } else {
+            showToast(data.detail || 'Failed to register notification.', 'error');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Failed to connect to server.', 'error');
+        }
+      }
+    };
+
+    checkPendingNotification();
+  }, [customer, product.id, selectedVariant, showToast]);
+
+  const handleNotifyMe = async () => {
+    if (!customer) {
+      // Save intent to localStorage
+      localStorage.setItem('pending_notify_product_id', product.id);
+      localStorage.setItem('pending_notify_variant', selectedVariant);
+      showToast('Please log in first to receive notifications.', 'info');
+      // Redirect to login page
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    setNotifying(true);
+    try {
+      const token = localStorage.getItem('dhanti_customer_token');
+      const res = await fetch(apiUrl('/api/auth/customer/notify-me'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({ productId: product.id, variant: selectedVariant })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'Notification request registered successfully!', 'success');
+      } else {
+        showToast(data.detail || 'Failed to register notification.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('A connection error occurred. Please try again.', 'error');
+    } finally {
+      setNotifying(false);
+    }
+  };
 
   // Reset quantity when variant changes
   useEffect(() => {
@@ -213,20 +295,35 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ produc
 
           {/* Actions */}
           <div className={styles.actions}>
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="btn btn-primary"
-              style={{ flexGrow: 1, height: '48px' }}
-              disabled={!inStock}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              Add to Cart
-            </button>
+            {inStock ? (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="btn btn-primary"
+                style={{ flexGrow: 1, height: '48px' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                Add to Cart
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleNotifyMe}
+                className="btn btn-primary"
+                style={{ flexGrow: 1, height: '48px', backgroundColor: 'var(--color-secondary, #B04A26)', borderColor: 'var(--color-secondary, #B04A26)' }}
+                disabled={notifying}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {notifying ? 'Setting Alert...' : 'Notify Me When Available'}
+              </button>
+            )}
             
             <Link 
               href="/shop" 

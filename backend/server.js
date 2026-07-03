@@ -17,7 +17,7 @@ const ws = require("ws");
 const axios = require("axios");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { sendOrderEmails, sendOrderStatusUpdateEmail, sendDirectAdminEmail, sendPasswordResetEmail } = require("./emailService");
+const { sendOrderEmails, sendOrderStatusUpdateEmail, sendDirectAdminEmail, sendPasswordResetEmail, sendStockNotificationEmail } = require("./emailService");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -355,6 +355,51 @@ app.get("/api/auth/customer/me", requireCustomer, (req, res) => {
   return res.json({ success: true, customer: req.user });
 });
 
+// POST /api/auth/customer/notify-me
+app.post("/api/auth/customer/notify-me", requireCustomer, async (req, res) => {
+  try {
+    const { productId, variant } = req.body || {};
+    if (!productId || !variant) {
+      return res.status(400).json({ detail: "Missing productId or variant" });
+    }
+
+    // Check if they are already registered for a pending notification
+    const { data: existing } = await supabase
+      .from("stock_notifications")
+      .select("id")
+      .eq("customer_id", req.user.id)
+      .eq("product_id", productId)
+      .eq("variant", variant)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (existing) {
+      return res.json({ success: true, message: "You will be notified when this item is back in stock!" });
+    }
+
+    // Insert new notification request
+    const { error } = await supabase
+      .from("stock_notifications")
+      .insert({
+        customer_id: req.user.id,
+        customer_email: req.user.email.toLowerCase(),
+        product_id: productId,
+        variant,
+        status: "pending"
+      });
+
+    if (error) {
+      console.error("Error creating stock notification:", error);
+      return res.status(500).json({ detail: "Failed to set up stock notification: " + error.message });
+    }
+
+    return res.json({ success: true, message: "Notification request registered! We'll email you when it's back." });
+  } catch (e) {
+    return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+
 // ─── Categories Routes ────────────────────────────────────────────────────────
 
 // GET /api/categories
@@ -497,6 +542,18 @@ app.post("/api/products", requireAdmin, async (req, res) => {
 app.put("/api/products", requireAdmin, async (req, res) => {
   try {
     const { id, ...updates } = req.body;
+
+    // Fetch old stock quantities before updating
+    let oldProduct = null;
+    if (updates.stock_quantities) {
+      const { data } = await supabase
+        .from("products")
+        .select("name, slug, stock_quantities")
+        .eq("id", id)
+        .maybeSingle();
+      oldProduct = data;
+    }
+
     Object.keys(updates).forEach(
       (k) => updates[k] === undefined && delete updates[k]
     );
@@ -510,6 +567,49 @@ app.put("/api/products", requireAdmin, async (req, res) => {
         .status(404)
         .json({ detail: "Product not found or update failed" });
     }
+
+    // Check for restocked variants and notify customers
+    if (updates.stock_quantities && oldProduct) {
+      for (const variant of Object.keys(updates.stock_quantities)) {
+        const oldStock = oldProduct.stock_quantities?.[variant] ?? 0;
+        const newStock = updates.stock_quantities[variant] ?? 0;
+
+        if (oldStock <= 0 && newStock > 0) {
+          // Restocked! Fetch pending notifications
+          const { data: notifications, error } = await supabase
+            .from("stock_notifications")
+            .select(`
+              id,
+              customer_email,
+              customers (
+                name
+              )
+            `)
+            .eq("product_id", id)
+            .eq("variant", variant)
+            .eq("status", "pending");
+
+          if (!error && notifications && notifications.length > 0) {
+            for (const n of notifications) {
+              const customerName = n.customers?.name || "Valued Customer";
+              const customerEmail = n.customer_email;
+
+              try {
+                await sendStockNotificationEmail(customerEmail, customerName, oldProduct.name, variant, oldProduct.slug);
+              } catch (emailErr) {
+                console.error(`Failed to send stock notification email to ${customerEmail}:`, emailErr);
+              }
+
+              await supabase
+                .from("stock_notifications")
+                .update({ status: "notified" })
+                .eq("id", n.id);
+            }
+          }
+        }
+      }
+    }
+
     return res.json({ success: true, product: result.data[0] });
   } catch (e) {
     return res.status(500).json({ detail: String(e.message || e) });

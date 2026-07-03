@@ -898,13 +898,115 @@ async function sendPasswordResetEmail(email, name, otp) {
   }
 }
 
+// Send stock notification email
+async function sendStockNotificationEmail(email, name, productName, variant, slug) {
+  const token = process.env.ZEPTOMAIL_TOKEN;
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantifoods.com";
+  const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
+
+  if (!token) {
+    console.warn("WARNING: ZEPTOMAIL_TOKEN is not configured in backend/.env. Stock notification email will not be sent.");
+    return;
+  }
+
+  // Get base URL for links (front-end)
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || "").split(",");
+  const frontendUrl = allowedOrigins[0] || "http://localhost:3000";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Back In Stock! - Dhanti Masala</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #faf6f0; color: #333333; margin: 0; padding: 0; }
+        .wrapper { width: 100%; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #ebd9c8; box-shadow: 0 4px 12px rgba(176, 74, 38, 0.05); }
+        .header { background-color: #B04A26; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; letter-spacing: 1px; font-weight: bold; }
+        .content { padding: 30px; line-height: 1.6; color: #2d2624; }
+        .greeting { font-size: 18px; font-weight: bold; color: #B04A26; margin-top: 0; }
+        .banner { background-color: #f7ede2; border: 1px dashed #B04A26; border-radius: 6px; padding: 20px; text-align: center; margin-bottom: 25px; }
+        .banner h2 { margin: 0 0 10px 0; color: #B04A26; font-size: 20px; }
+        .btn-container { text-align: center; margin: 30px 0 10px 0; }
+        .btn { display: inline-block; background-color: #B04A26; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 15px; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(176, 74, 38, 0.15); }
+        .footer { background-color: #f5ece4; padding: 20px; text-align: center; font-size: 12px; color: #88726b; border-top: 1px solid #e8dbd0; }
+        .footer a { color: #B04A26; text-decoration: none; }
+      </style>
+    </head>
+    <body>
+      <div class="wrapper">
+        <div class="header">
+          <h1>${fromName}</h1>
+        </div>
+        <div class="content">
+          <p class="greeting">Namaskara ${name || "Valued Customer"},</p>
+          
+          <div class="banner">
+            <h2>🎉 Back In Stock!</h2>
+            <p style="margin: 0; font-size: 15px; color: #5c3e35; font-weight: 500;">
+              You are ready to order: <strong>${productName} (${variant})</strong> is now available.
+            </p>
+          </div>
+
+          <p>Great news! We have freshly roasted and ground a new batch of <strong>${productName}</strong> and replenished the stock. It is now ready for you to order!</p>
+          
+          <p>Our spices are handcrafted in small batches, so stock can be limited. Secure your packet today to enjoy authentic homemade Karnataka flavours in your kitchen.</p>
+          
+          <div class="btn-container">
+            <a href="${frontendUrl}/products/${slug}" class="btn" target="_blank">Order Now</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>This is an automated notification based on your request. If you have questions, contact us at <strong>contact@dhantifoods.com</strong></p>
+          <p>&copy; ${new Date().getFullYear()} <a href="${frontendUrl}">Dhanti Masala</a>. All Rights Reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const payload = {
+    from: {
+      address: fromAddress,
+      name: fromName
+    },
+    to: [
+      {
+        email_address: {
+          address: email,
+          name: name || "Valued Customer"
+        }
+      }
+    ],
+    subject: `🎉 Good News: ${productName} (${variant}) is back in stock!`,
+    htmlbody: html
+  };
+
+  const url = "https://api.zeptomail.in/v1.1/email";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: token
+  };
+
+  try {
+    const res = await axios.post(url, payload, { headers });
+    console.log(`[ZeptoMail] Stock notification email sent to ${email} for ${productName} (${variant}). Message ID:`, res.data?.message_id || "N/A");
+    return res.data;
+  } catch (err) {
+    console.error(`[ZeptoMail] Error sending stock notification email:`, err.response ? err.response.data : err.message);
+    throw err;
+  }
+}
+
 module.exports = {
   getInvoiceNumber,
   sendOrderEmails,
   sendShippingEmail,
   sendOrderStatusUpdateEmail,
   sendDirectAdminEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendStockNotificationEmail
 };
 
 
