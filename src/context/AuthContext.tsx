@@ -12,7 +12,7 @@ interface Customer {
 
 interface AuthContextType {
   customer: Customer | null;
-  setCustomer: (customer: Customer | null) => void;
+  setCustomer: (customer: Customer | null, token?: string) => void;
   isLoading: boolean;
   logout: () => Promise<void>;
 }
@@ -60,12 +60,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const handleSetCustomer = (newCustomer: Customer | null) => {
+  const handleSetCustomer = (newCustomer: Customer | null, token?: string) => {
     setCustomer(newCustomer);
     if (newCustomer) {
       localStorage.setItem('dhanti_customer', JSON.stringify(newCustomer));
+      if (token) {
+        localStorage.setItem('dhanti_customer_token', token);
+      }
     } else {
       localStorage.removeItem('dhanti_customer');
+      localStorage.removeItem('dhanti_customer_token');
     }
   };
 

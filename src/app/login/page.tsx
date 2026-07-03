@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiUrl } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
@@ -13,6 +14,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
   const { setCustomer } = useAuth();
+  const { showToast } = useToast();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,16 +31,19 @@ function LoginContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'omit' // actually in NextJS front to Express, omit is fine since we use localStorage
+        credentials: 'omit'
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setCustomer(data.customer);
-        router.push(redirectUrl);
+        setCustomer(data.customer, data.token);
+        showToast('Login successful!', 'success');
+        setTimeout(() => {
+          router.push(redirectUrl);
+        }, 1500);
       } else {
-        setError(data.detail || 'Invalid credentials');
+        setError(data.detail || 'Invalid email or password');
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -79,6 +84,12 @@ function LoginContent() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+        </div>
+
+        <div style={{ textAlign: 'right', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
+          <Link href="/forgot-password" style={{ fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 500 }}>
+            Forgot Password?
+          </Link>
         </div>
 
         <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>

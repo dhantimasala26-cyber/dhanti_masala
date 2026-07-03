@@ -814,11 +814,97 @@ async function sendDirectAdminEmail({ email, subject, message, template_type }) 
   return res.data;
 }
 
+// Send password reset OTP email
+async function sendPasswordResetEmail(email, name, otp) {
+  const token = process.env.ZEPTOMAIL_TOKEN;
+  const fromAddress = process.env.ZEPTOMAIL_FROM_ADDRESS || "noreply@dhantifoods.com";
+  const fromName = process.env.ZEPTOMAIL_FROM_NAME || "Dhanti Masala";
+
+  if (!token) {
+    console.warn("WARNING: ZEPTOMAIL_TOKEN is not configured in backend/.env. Password reset email will not be sent.");
+    return;
+  }
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Reset Your Password - Dhanti Masala</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #faf6f0; color: #333333; margin: 0; padding: 0; }
+        .wrapper { width: 100%; max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #ebd9c8; box-shadow: 0 4px 12px rgba(176, 74, 38, 0.05); }
+        .header { background-color: #B04A26; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; letter-spacing: 1px; font-weight: bold; }
+        .content { padding: 30px; line-height: 1.6; color: #2d2624; }
+        .greeting { font-size: 18px; font-weight: bold; color: #B04A26; margin-top: 0; }
+        .otp-container { text-align: center; margin: 25px 0; padding: 20px; background-color: #fcf8f5; border: 1px dashed #B04A26; border-radius: 6px; }
+        .otp-code { font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #B04A26; margin: 0; }
+        .footer { background-color: #f5ece4; padding: 20px; text-align: center; font-size: 12px; color: #88726b; border-top: 1px solid #e8dbd0; }
+        .footer a { color: #B04A26; text-decoration: none; }
+      </style>
+    </head>
+    <body>
+      <div class="wrapper">
+        <div class="header">
+          <h1>${fromName}</h1>
+        </div>
+        <div class="content">
+          <p class="greeting">Namaskara ${name || "Valued Customer"},</p>
+          <p>We received a request to reset the password for your account. Please use the verification code below to complete the reset process. This code is valid for 10 minutes.</p>
+          <div class="otp-container">
+            <div class="otp-code">${otp}</div>
+          </div>
+          <p>If you did not make this request, you can safely ignore this email. Your password will remain unchanged.</p>
+        </div>
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} <a href="https://dhantifoods.com">Dhanti Masala</a>. All Rights Reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const payload = {
+    from: {
+      address: fromAddress,
+      name: fromName
+    },
+    to: [
+      {
+        email_address: {
+          address: email,
+          name: name || "Valued Customer"
+        }
+      }
+    ],
+    subject: "Reset Your Password - Dhanti Masala Verification Code",
+    htmlbody: html
+  };
+
+  const url = "https://api.zeptomail.in/v1.1/email";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: token
+  };
+
+  try {
+    const res = await axios.post(url, payload, { headers });
+    console.log(`[ZeptoMail] Password reset email sent successfully to ${email}. Message ID:`, res.data?.message_id || "N/A");
+    return res.data;
+  } catch (err) {
+    console.error(`[ZeptoMail] Error sending password reset email:`, err.response ? err.response.data : err.message);
+    throw err;
+  }
+}
+
 module.exports = {
   getInvoiceNumber,
   sendOrderEmails,
   sendShippingEmail,
   sendOrderStatusUpdateEmail,
-  sendDirectAdminEmail
+  sendDirectAdminEmail,
+  sendPasswordResetEmail
 };
+
 

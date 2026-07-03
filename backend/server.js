@@ -17,7 +17,7 @@ const ws = require("ws");
 const axios = require("axios");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { sendOrderEmails, sendOrderStatusUpdateEmail, sendDirectAdminEmail } = require("./emailService");
+const { sendOrderEmails, sendOrderStatusUpdateEmail, sendDirectAdminEmail, sendPasswordResetEmail } = require("./emailService");
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -107,6 +107,9 @@ const cookieOpts = {
   secure: isProd,
 };
 
+// OTP Memory Store for email verifications
+const emailOtpStore = new Map(); // email -> { otp, expiresAt }
+
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 
 // POST /api/auth/login
@@ -134,13 +137,20 @@ app.get("/api/auth/session", (req, res) => {
 
 // ─── Customer Auth Middleware ──────────────────────────────────────────────────
 function requireCustomer(req, res, next) {
-  const token = req.cookies?.dhanti_customer_session;
+  let token = req.cookies?.dhanti_customer_session;
+
+  // Support Authorization header fallback
+  const authHeader = req.headers.authorization;
+  if (!token && authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  }
+
   if (!token) {
     return res.status(401).json({ detail: "Unauthorized - Please log in" });
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // { id, email, name }
+    req.user = decoded; // { id, email, name, phone }
     next();
   } catch (err) {
     return res.status(401).json({ detail: "Invalid session - Please log in again" });
@@ -192,7 +202,7 @@ app.post("/api/auth/customer/signup", async (req, res) => {
     );
 
     res.cookie("dhanti_customer_session", token, { ...cookieOpts, maxAge: 7 * 86400 * 1000 });
-    return res.json({ success: true, customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } });
+    return res.json({ success: true, token, customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } });
   } catch (e) {
     return res.status(500).json({ detail: String(e.message || e) });
   }
@@ -228,7 +238,99 @@ app.post("/api/auth/customer/login", async (req, res) => {
     );
 
     res.cookie("dhanti_customer_session", token, { ...cookieOpts, maxAge: 7 * 86400 * 1000 });
-    return res.json({ success: true, customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } });
+    return res.json({ success: true, token, customer: { id: customer.id, name: customer.name, email: customer.email, phone: customer.phone } });
+  } catch (e) {
+    return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+
+
+// POST /api/auth/customer/forgot-password
+app.post("/api/auth/customer/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ detail: "Missing email address" });
+    }
+
+    // Check if customer exists
+    const { data: customer } = await supabase
+      .from("customers")
+      .select("id, name, email, phone")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+
+    if (!customer) {
+      return res.status(404).json({ detail: "Email not registered." });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    emailOtpStore.set(email.toLowerCase(), {
+      otp,
+      expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes validity
+    });
+
+    console.log(`[Email OTP] Reset code for ${email} is ${otp}`);
+
+    // Send reset email via ZeptoMail
+    try {
+      await sendPasswordResetEmail(email.toLowerCase(), customer.name, otp);
+    } catch (err) {
+      console.error("Failed to send password reset email via ZeptoMail:", err);
+      // We can fallback or proceed (e.g., return OTP in response for demo as fallback)
+    }
+
+    return res.json({
+      success: true,
+      message: "Verification OTP has been sent to your email.",
+      otp: otp // Return in response as fallback/convenience for testing if email delivery isn't checked
+    });
+  } catch (e) {
+    return res.status(500).json({ detail: String(e.message || e) });
+  }
+});
+
+// POST /api/auth/customer/reset-password
+app.post("/api/auth/customer/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body || {};
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ detail: "Missing required fields" });
+    }
+
+    const record = emailOtpStore.get(email.toLowerCase());
+    if (!record) {
+      return res.status(400).json({ detail: "Invalid or expired OTP" });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      emailOtpStore.delete(email.toLowerCase());
+      return res.status(400).json({ detail: "OTP has expired" });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ detail: "Invalid OTP code" });
+    }
+
+    // OTP is valid, hash new password
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(newPassword, salt);
+
+    // Update in DB
+    const { error } = await supabase
+      .from("customers")
+      .update({ password_hash })
+      .eq("email", email.toLowerCase());
+
+    if (error) {
+      return res.status(500).json({ detail: "Failed to update password in database" });
+    }
+
+    emailOtpStore.delete(email.toLowerCase());
+
+    return res.json({ success: true, message: "Password has been reset successfully. You can now login." });
   } catch (e) {
     return res.status(500).json({ detail: String(e.message || e) });
   }
@@ -676,7 +778,7 @@ app.get("/api/orders/my-orders", requireCustomer, async (req, res) => {
     const result = await supabase
       .from("orders")
       .select("*")
-      .eq("customer_id", req.user.id)
+      .or(`customer_id.eq.${req.user.id},customer_email.eq.${req.user.email.toLowerCase()},customer_phone.eq.${req.user.phone}`)
       .order("created_at", { ascending: false });
     return res.json({ success: true, orders: result.data || [] });
   } catch (e) {

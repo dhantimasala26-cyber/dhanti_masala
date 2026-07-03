@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiUrl } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
@@ -13,6 +14,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
   const { setCustomer } = useAuth();
+  const { showToast } = useToast();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,8 +39,12 @@ function SignupContent() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setCustomer(data.customer);
-        router.push(redirectUrl);
+        setCustomer(data.customer, data.token);
+        showToast('Account created successfully!', 'success');
+        // Add a small delay so the user sees the toast
+        setTimeout(() => {
+          router.push(redirectUrl);
+        }, 1500);
       } else {
         setError(data.detail || 'Registration failed');
       }

@@ -28,6 +28,14 @@ if (typeof window !== 'undefined') {
 
     newInit.credentials = 'include';
 
+    const token = localStorage.getItem('dhanti_customer_token');
+    if (token) {
+      newInit.headers = {
+        ...newInit.headers,
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
     if (typeof input === 'string') {
       if (input.startsWith('/api')) {
         finalInput = `${cleanApiBase}${input}`;
